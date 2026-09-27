@@ -1,0 +1,16 @@
+{
+  "name": "game-engine-hub",
+  "version": "1.0.0",
+  "description": "لوحة مشاريع محرك الألعاب الخاص بي",
+  "scripts": {
+    "sync": "npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/filesystem": "^6.0.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.2"
+  }
+}

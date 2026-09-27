@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>المحرك — المشاريع</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #000000;
+    --sidebar: #0D0D0D;
+    --panel: #0A0A0A;
+    --surface-2: #161616;
+    --row-hover: #161616;
+    --border: #232323;
+    --text: #F2F2F2;
+    --text-muted: #8A8A8A;
+    --text-dim: #5C5C5C;
+    --btn-fill: #F2F2F2;
+    --btn-fill-text: #0A0A0A;
+    --danger: #C77268;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family:'Tajawal', sans-serif;
+    overflow:hidden;
+  }
+  .mono{ font-family:'JetBrains Mono', monospace; direction:ltr; text-align:right; unicode-bidi:plaintext; }
+  button{ font-family:'Tajawal', sans-serif; }
+
+  .app{
+    display:flex;
+    height:100vh;
+    width:100vw;
+  }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width: 220px;
+    flex-shrink:0;
+    background: var(--sidebar);
+    border-left: 1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+    transition: width .15s ease;
+  }
+  .sidebar-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 14px 14px;
+  }
+  .avatar{
+    width:30px; height:30px;
+    border-radius:50%;
+    background: #3A3A3A;
+    color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:700;
+    flex-shrink:0;
+  }
+  .icon-btn{
+    width:28px; height:28px;
+    border-radius:8px;
+    background:transparent;
+    border:none;
+    color: var(--text-muted);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    font-size:15px;
+  }
+  .icon-btn:hover{ background: var(--row-hover); color: var(--text); }
+
+  .nav{ flex:1; padding: 4px 8px; overflow-y:auto; }
+  .nav-item{
+    display:flex; align-items:center; gap:10px;
+    padding: 9px 10px;
+    border-radius:8px;
+    color: var(--text-muted);
+    font-size:13.5px;
+    font-weight:500;
+    cursor:pointer;
+    margin-bottom:2px;
+    white-space:nowrap;
+  }
+  .nav-item svg{ width:16px; height:16px; flex-shrink:0; }
+  .nav-item:hover{ background: var(--row-hover); color: var(--text); }
+  .nav-item.active{ background: var(--row-hover); color: var(--text); font-weight:700; }
+  .nav-label{ overflow:hidden; text-overflow:ellipsis; }
+
+  .sidebar-bottom{ border-top:1px solid var(--border); padding: 4px 8px; }
+
+  /* ---------- Main ---------- */
+  .main{ flex:1; display:flex; flex-direction:column; min-width:0; }
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 16px 18px 12px;
+    gap:10px;
+  }
+  .topbar h1{ font-size:20px; margin:0; font-weight:900; white-space:nowrap; }
+  .topbar-right{ display:flex; align-items:center; gap:8px; }
+
+  .search{
+    display:flex; align-items:center; gap:8px;
+    background: var(--panel);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding: 7px 10px;
+    color: var(--text-dim);
+    font-size:13px;
+    width:150px;
+  }
+  .search svg{ width:14px; height:14px; flex-shrink:0; opacity:.7; }
+
+  .btn{
+    border:none; cursor:pointer;
+    font-weight:700;
+    border-radius:8px;
+    transition: transform .1s ease, background .15s ease;
+    white-space:nowrap;
+  }
+  .btn:active{ transform: scale(0.97); }
+  .btn-fill{ background: var(--btn-fill); color: var(--btn-fill-text); padding: 8px 16px; font-size:13.5px; }
+  .btn-fill:hover{ background:#fff; }
+  .btn-outline{
+    background:transparent; border:1px solid var(--border); color: var(--text);
+    padding: 8px 13px; font-size:13.5px; display:flex; align-items:center; gap:6px;
+  }
+  .btn-outline:hover{ background: var(--row-hover); }
+
+  .table-wrap{
+    flex:1;
+    margin: 0 18px 18px;
+    background: var(--panel);
+    border:1px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+  .row-head{
+    display:grid;
+    grid-template-columns: 30px 1fr 130px 110px 60px;
+    padding: 10px 16px;
+    font-size:11px;
+    color: var(--text-dim);
+    font-weight:700;
+    border-bottom:1px solid var(--border);
+  }
+  .rows{ overflow-y:auto; flex:1; }
+  .row{
+    display:grid;
+    grid-template-columns: 30px 1fr 130px 110px 60px;
+    align-items:center;
+    padding: 13px 16px;
+    border-bottom:1px solid var(--border);
+    cursor:pointer;
+    font-size:13.5px;
+  }
+  .row:last-child{ border-bottom:none; }
+  .row:hover{ background: var(--row-hover); }
+  .star{ color: var(--text-dim); font-size:14px; }
+  .proj-name{ font-weight:700; }
+  .proj-path{ color: var(--text-muted); font-size:12px; margin-top:2px; }
+  .proj-date{ color: var(--text-muted); }
+  .proj-version{ color: var(--text-muted); font-size:12.5px; }
+  .row-actions{ display:flex; justify-content:flex-end; }
+  .row-actions button{
+    background:transparent; border:none; color: var(--text-dim);
+    font-size:12.5px; cursor:pointer; padding:4px 8px; border-radius:6px;
+  }
+  .row-actions button:hover{ color: var(--danger); background: var(--row-hover); }
+
+  .empty{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color: var(--text-dim); gap:14px; padding: 20px; text-align:center; }
+  .empty-grid{ width:36px; height:36px; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:5px; }
+  .empty-grid div{ background:#242424; border-radius:3px; }
+  .empty-title{ color: var(--text-muted); font-size:14px; font-weight:700; }
+  .empty-sub{ font-size:12.5px; color: var(--text-dim); }
+
+  /* ---------- Responsive: phones ---------- */
+  @media (max-width: 720px){
+    .sidebar{ width:60px; }
+    .nav-label{ display:none; }
+    .nav-item{ justify-content:center; padding:10px 0; }
+    .sidebar-top{ justify-content:center; padding:12px 6px; }
+    .sidebar-top .icon-btn{ display:none; }
+    .topbar h1{ font-size:17px; }
+    .search{ display:none; }
+    .btn-outline span.full-label{ display:none; }
+    .row-head{ display:none; }
+    .row{
+      grid-template-columns: 1fr auto;
+      grid-template-rows: auto auto;
+      row-gap:4px;
+      padding: 12px 14px;
+    }
+    .star{ display:none; }
+    .proj-date, .proj-version{ font-size:11.5px; grid-column:1; }
+    .proj-date::before{ content:"آخر فتح: "; }
+    .proj-version::before{ content:"— الإصدار "; }
+    .row-actions{ grid-row: 1; grid-column:2; align-items:flex-start; }
+  }
+
+  /* ---------- New Project modal ---------- */
+  .overlay{
+    position:fixed; inset:0;
+    background: rgba(0,0,0,0.75);
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none;
+    transition: opacity .15s ease;
+    z-index:10;
+  }
+  .overlay.open{ opacity:1; pointer-events:auto; }
+
+  .np-modal{
+    background: var(--sidebar);
+    border:1px solid var(--border);
+    border-radius:12px;
+    width:900px; max-width:calc(100vw - 32px);
+    height:600px; max-height:calc(100vh - 32px);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  .np-header{
+    text-align:center;
+    padding: 14px 16px 12px;
+    border-bottom:1px solid var(--border);
+    position:relative;
+    flex-shrink:0;
+  }
+  .np-header h3{ margin:0; font-size:15px; }
+  .np-header .np-version{ font-size:11.5px; color:var(--text-dim); margin-top:3px; }
+  .np-close{
+    position:absolute; left:12px; top:10px;
+    background:transparent; border:none; color:var(--text-dim);
+    font-size:18px; cursor:pointer; width:28px; height:28px; border-radius:8px;
+  }
+  .np-close:hover{ background: var(--row-hover); color:var(--text); }
+
+  .np-body{
+    flex:1;
+    display:flex;
+    min-height:0;
+  }
+
+  .np-categories{
+    width:170px; flex-shrink:0;
+    border-left:1px solid var(--border);
+    padding: 14px 10px;
+    overflow-y:auto;
+  }
+  .np-search{
+    display:flex; align-items:center; gap:8px;
+    background: var(--panel); border:1px solid var(--border);
+    border-radius:8px; padding:8px 10px; margin: 0 10px 12px;
+    font-size:12.5px; color:var(--text-dim);
+  }
+  .np-search svg{ width:13px; height:13px; opacity:.7; flex-shrink:0; }
+  .np-cat-item{
+    padding: 8px 10px; border-radius:7px; font-size:13px;
+    color:var(--text-muted); cursor:pointer; margin-bottom:2px; font-weight:500;
+  }
+  .np-cat-item:hover{ background: var(--row-hover); color:var(--text); }
+  .np-cat-item.active{ background: var(--row-hover); color:var(--text); font-weight:700; }
+
+  .np-list{
+    width:260px; flex-shrink:0;
+    border-left:1px solid var(--border);
+    overflow-y:auto;
+    padding: 10px;
+  }
+  .np-tpl{
+    display:flex; align-items:center; gap:10px;
+    padding: 9px 10px; border-radius:9px;
+    cursor:pointer; margin-bottom:3px;
+    border: 1px solid transparent;
+  }
+  .np-tpl:hover{ background: var(--row-hover); }
+  .np-tpl.selected{ background: var(--row-hover); border-color:#3a3a3a; }
+  .np-tpl-icon{
+    width:30px; height:30px; border-radius:7px; flex-shrink:0;
+    background: var(--surface-2); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; color:var(--text-muted);
+  }
+  .np-tpl-icon svg{ width:15px; height:15px; }
+  .np-tpl-name{ font-size:13.5px; font-weight:700; }
+  .np-tpl-sub{ font-size:11.5px; color:var(--text-dim); margin-top:1px; }
+
+  .np-preview{
+    flex:1;
+    padding: 18px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+  }
+  .np-preview-img{
+    width:100%; height:150px; border-radius:10px; flex-shrink:0;
+    background: var(--surface-2);
+    border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:14px;
+  }
+  .np-preview-img svg{ width:52px; height:52px; color:#555; }
+  .np-preview-title{ font-size:15px; font-weight:900; margin-bottom:6px; }
+  .np-preview-desc{ font-size:13px; color:var(--text-muted); line-height:1.6; margin-bottom:18px; }
+
+  .np-settings-label{
+    font-size:11px; color:var(--text-dim); font-weight:700; letter-spacing:.3px;
+    margin-bottom:10px;
+  }
+  .np-field{ margin-bottom:12px; }
+  .np-field label{ display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; }
+  .np-field input{
+    width:100%; background: var(--panel); border:1px solid var(--border);
+    color: var(--text); padding: 9px 11px; border-radius:8px;
+    font-family:'Tajawal', sans-serif; font-size:13.5px; outline:none;
+  }
+  .np-field input:focus{ border-color:#555; }
+  .np-path-row{ display:flex; gap:8px; }
+  .np-path-row input{ flex:1; }
+  .np-browse{
+    background: var(--panel); border:1px solid var(--border); color:var(--text-muted);
+    padding: 0 12px; border-radius:8px; font-size:12px; white-space:nowrap; cursor:pointer;
+  }
+  .np-browse:hover{ color:var(--text); }
+  .np-error{ color: var(--danger); font-size:11.5px; margin-top:6px; }
+
+  .np-footer{
+    border-top:1px solid var(--border);
+    padding: 12px 16px;
+    display:flex; justify-content:flex-end; gap:10px;
+    flex-shrink:0;
+  }
+
+  /* mobile layout for New Project modal */
+  @media (max-width: 720px){
+    .overlay{ padding:0; }
+    .np-modal{ width:100vw; max-width:100vw; height:100vh; max-height:100vh; border-radius:0; }
+    .np-body{ flex-direction:column; overflow-y:auto; }
+    .np-categories{
+      width:100%; border-left:none; border-bottom:1px solid var(--border);
+      padding: 10px; display:flex; align-items:center; gap:6px; overflow-x:auto; overflow-y:hidden;
+      white-space:nowrap;
+    }
+    .np-search{ display:none; }
+    .np-cat-item{ flex-shrink:0; margin-bottom:0; }
+    .np-list{
+      width:100%; border-left:none; border-bottom:1px solid var(--border);
+      max-height:220px;
+    }
+    .np-preview{ flex:none; }
+    .np-preview-img{ height:110px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="avatar">مح</div>
+      <button class="icon-btn" title="الإعدادات">⚙</button>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 4.5v11L12 22l-9-4.5v-11L12 2z"/></svg>
+        <span class="nav-label">المشاريع</span>
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+        <span class="nav-label">التثبيتات</span>
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 5-9 5-9-5 9-5zM3 12l9 5 9-5"/></svg>
+        <span class="nav-label">التعلّم</span>
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M2 20c0-3 3-5 7-5s7 2 7 5"/></svg>
+        <span class="nav-label">المجتمع</span>
+      </div>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l4-4m-4 4l-4-4M4 21h16"/></svg>
+        <span class="nav-label">التنزيلات</span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h1>المشاريع</h1>
+      <div class="topbar-right">
+        <div class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+          بحث...
+        </div>
+        <button class="btn btn-outline" id="openBtn"><span class="full-label">فتح</span></button>
+        <button class="btn btn-fill" id="openNewProjectBtn">مشروع جديد</button>
+      </div>
+    </div>
+
+    <div class="table-wrap" id="tableWrap"></div>
+  </div>
+</div>
+
+<!-- New Project Modal (Unity-Hub style) -->
+<div class="overlay" id="overlay">
+  <div class="np-modal">
+    <div class="np-header">
+      <button class="np-close" id="npClose">×</button>
+      <h3>مشروع جديد</h3>
+      <div class="np-version">إصدار المحرك: <span class="mono">0.1.0</span></div>
+    </div>
+
+    <div class="np-body">
+      <div class="np-categories" id="npCategories">
+        <div class="np-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+          البحث في القوالب
+        </div>
+        <div class="np-cat-item active" data-cat="all">كل القوالب</div>
+        <div class="np-cat-item" data-cat="core">أساسية</div>
+        <div class="np-cat-item" data-cat="sample">أمثلة</div>
+      </div>
+
+      <div class="np-list" id="npList"></div>
+
+      <div class="np-preview" id="npPreview"></div>
+    </div>
+
+    <div class="np-footer">
+      <button class="btn btn-outline" id="npCancel">إلغاء</button>
+      <button class="btn btn-fill" id="npCreate">إنشاء المشروع</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="dirPicker" webkitdirectory style="display:none">
+
+<script>
+const tableWrap = document.getElementById('tableWrap');
+const overlay = document.getElementById('overlay');
+const npList = document.getElementById('npList');
+const npPreview = document.getElementById('npPreview');
+const npCategories = document.getElementById('npCategories');
+const dirPicker = document.getElementById('dirPicker');
+
+// Default project root mirrors Godot's own default projects folder on Android
+const DEFAULT_ROOT = '/storage/emulated/0/Godot/projects';
+
+const templates = [
+  {
+    id:'empty2d', cat:'core', name:'2D فارغ', sub:'أساسية',
+    desc:'مشروع فارغ مُعد للألعاب ثنائية الأبعاد. يبدأ بمشهد نظيف من غير أي عناصر.',
+  },
+  {
+    id:'platformer', cat:'sample', name:'منصات (Platformer)', sub:'مثال',
+    desc:'مشروع جاهز بشخصية قابلة للتحكم، قفز، ومنصات أساسية — نقطة بداية سريعة للألعاب من نوع المنصات.',
+  },
+  {
+    id:'topdown', cat:'sample', name:'من أعلى (Top-Down)', sub:'مثال',
+    desc:'مشروع بزاوية علوية مع تحكم بأربع اتجاهات، مناسب لألعاب المغامرات أو الاستكشاف.',
+  },
+  {
+    id:'runner', cat:'sample', name:'لعبة جري (Runner)', sub:'مثال',
+    desc:'مشروع بحركة تلقائية للأمام مع عوائق وقفز — أساس لألعاب الجري اللا نهائي.',
+  },
+];
+
+let selectedTemplate = templates[0];
+let activeCat = 'all';
+let projects = [];
+
+function iconFor(id){
+  const icons = {
+    empty2d:'<rect x="7" y="7" width="10" height="10" rx="1"/>',
+    platformer:'<path d="M4 18h4v-5h4v-3h4v-6h4"/><circle cx="6" cy="8" r="2"/>',
+    topdown:'<rect x="5" y="5" width="14" height="14" rx="2"/><path d="M12 5v14M5 12h14"/>',
+    runner:'<circle cx="7" cy="7" r="2"/><path d="M4 20l3-6 3 2 3-5 3 9"/>'
+  };
+  return icons[id] || '<rect x="7" y="7" width="10" height="10"/>';
+}
+
+function renderCategories(){
+  npCategories.querySelectorAll('.np-cat-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.cat === activeCat);
+    el.onclick = () => { activeCat = el.dataset.cat; renderCategories(); renderList(); };
+  });
+}
+
+function renderList(){
+  const filtered = activeCat === 'all' ? templates : templates.filter(t => t.cat === activeCat);
+  npList.innerHTML = filtered.map(t => `
+    <div class="np-tpl ${t.id === selectedTemplate.id ? 'selected':''}" data-id="${t.id}">
+      <div class="np-tpl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${iconFor(t.id)}</svg></div>
+      <div>
+        <div class="np-tpl-name">${t.name}</div>
+        <div class="np-tpl-sub">${t.sub}</div>
+      </div>
+    </div>
+  `).join('');
+  npList.querySelectorAll('.np-tpl').forEach(el => {
+    el.onclick = () => {
+      selectedTemplate = templates.find(t => t.id === el.dataset.id);
+      renderList();
+      renderPreview();
+    };
+  });
+}
+
+function suggestPath(name){
+  const slug = (name || selectedTemplate.name).trim().replace(/\s+/g,'-');
+  return `${DEFAULT_ROOT}/${slug}`;
+}
+
+function renderPreview(){
+  npPreview.innerHTML = `
+    <div class="np-preview-img">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">${iconFor(selectedTemplate.id)}</svg>
+    </div>
+    <div class="np-preview-title">${selectedTemplate.name}</div>
+    <div class="np-preview-desc">${selectedTemplate.desc}</div>
+    <div class="np-settings-label">إعدادات المشروع</div>
+    <div class="np-field">
+      <label>اسم المشروع</label>
+      <input type="text" id="npNameInput" value="مشروعي" placeholder="اسم المشروع">
+    </div>
+    <div class="np-field">
+      <label>مكان الحفظ</label>
+      <div class="np-path-row">
+        <input type="text" id="npPathInput" class="mono" value="${suggestPath('مشروعي')}">
+        <button class="np-browse" id="npBrowseBtn">استعراض</button>
+      </div>
+      <div class="np-error" id="npPathError" style="display:none;"></div>
+    </div>
+  `;
+  const nameInput = document.getElementById('npNameInput');
+  const pathInput = document.getElementById('npPathInput');
+  nameInput.addEventListener('input', () => {
+    if(!pathInput.dataset.userEdited){
+      pathInput.value = suggestPath(nameInput.value);
+    }
+  });
+  pathInput.addEventListener('input', () => { pathInput.dataset.userEdited = '1'; });
+  document.getElementById('npBrowseBtn').addEventListener('click', () => dirPicker.click());
+  dirPicker.onchange = () => {
+    if(dirPicker.files.length > 0){
+      const first = dirPicker.files[0].webkitRelativePath;
+      const folderName = first.split('/')[0];
+      pathInput.value = `${DEFAULT_ROOT}/${folderName}`;
+      pathInput.dataset.userEdited = '1';
+    }
+  };
+}
+
+function formatDate(ts){
+  const d = new Date(ts);
+  const now = new Date();
+  if(d.toDateString() === now.toDateString()) return 'اليوم';
+  const yesterday = new Date(now); yesterday.setDate(now.getDate()-1);
+  if(d.toDateString() === yesterday.toDateString()) return 'أمس';
+  return d.toLocaleDateString('ar-EG', { day:'numeric', month:'short' });
+}
+
+function renderProjects(){
+  if(projects.length === 0){
+    tableWrap.innerHTML = `
+      <div class="empty">
+        <div class="empty-grid"><div></div><div></div><div></div><div></div></div>
+        <div class="empty-title">لا توجد مشاريع بعد</div>
+        <div class="empty-sub">لإنشاء مشروع جديد اضغط على الزر أعلاه</div>
+      </div>`;
+    return;
+  }
+  const sorted = [...projects].sort((a,b)=> b.lastOpened - a.lastOpened);
+  tableWrap.innerHTML = `
+    <div class="row-head">
+      <div>★</div><div>الاسم</div><div>آخر تعديل</div><div>إصدار المحرك</div><div></div>
+    </div>
+    <div class="rows">
+      ${sorted.map(p => `
+        <div class="row" data-id="${p.id}">
+          <div class="star">☆</div>
+          <div><div class="proj-name">${p.name}</div><div class="proj-path mono">${p.path}</div></div>
+          <div class="proj-date">${formatDate(p.lastOpened)}</div>
+          <div class="proj-version">0.1.0</div>
+          <div class="row-actions"><button data-remove="${p.id}">حذف</button></div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  tableWrap.querySelectorAll('.row').forEach(row => {
+    row.addEventListener('click', (e) => {
+      if(e.target.dataset.remove) return;
+      const p = projects.find(x => x.id === row.dataset.id);
+      p.lastOpened = Date.now();
+      saveProjects(); renderProjects();
+    });
+  });
+  tableWrap.querySelectorAll('[data-remove]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      projects = projects.filter(p => p.id !== btn.dataset.remove);
+      saveProjects(); renderProjects();
+    });
+  });
+}
+
+function openModal(){
+  selectedTemplate = templates[0];
+  activeCat = 'all';
+  renderCategories();
+  renderList();
+  renderPreview();
+  overlay.classList.add('open');
+}
+function closeModal(){ overlay.classList.remove('open'); }
+
+document.getElementById('openNewProjectBtn').addEventListener('click', openModal);
+document.getElementById('npCancel').addEventListener('click', closeModal);
+document.getElementById('npClose').addEventListener('click', closeModal);
+overlay.addEventListener('click', (e) => { if(e.target === overlay) closeModal(); });
+
+document.getElementById('npCreate').addEventListener('click', () => {
+  const nameInput = document.getElementById('npNameInput');
+  const pathInput = document.getElementById('npPathInput');
+  const pathError = document.getElementById('npPathError');
+  const name = nameInput.value.trim();
+  const path = pathInput.value.trim();
+  if(!name){ pathError.textContent = 'لازم تكتب اسم للمشروع'; pathError.style.display='block'; return; }
+  if(!path){ pathError.textContent = 'لازم تحدد مكان الحفظ'; pathError.style.display='block'; return; }
+  if(projects.some(p => p.path === path)){ pathError.textContent = 'فيه مشروع تاني محفوظ في نفس المكان ده'; pathError.style.display='block'; return; }
+  pathError.style.display = 'none';
+  projects.push({ id:'p_'+Date.now(), name, path, template: selectedTemplate.name, createdAt: Date.now(), lastOpened: Date.now() });
+  saveProjects(); renderProjects(); closeModal();
+});
+
+async function saveProjects(){
+  try{ await window.storage.set('projects-list', JSON.stringify(projects), false); }
+  catch(err){ console.error('Storage error:', err); }
+}
+async function loadProjects(){
+  try{
+    const result = await window.storage.get('projects-list', false);
+    projects = result ? JSON.parse(result.value) : [];
+  }catch(err){ projects = []; }
+  renderProjects();
+}
+loadProjects();
+</script>
+</body>
+</html>

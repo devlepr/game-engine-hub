@@ -1,0 +1,6 @@
+{
+  "appId": "com.mohamed.gameenginehub",
+  "appName": "محرك الألعاب",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
