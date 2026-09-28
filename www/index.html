@@ -39,6 +39,7 @@
     width:100vw;
   }
 
+  /* ---------- Sidebar ---------- */
   .sidebar{
     width: 220px;
     flex-shrink:0;
@@ -94,6 +95,7 @@
 
   .sidebar-bottom{ border-top:1px solid var(--border); padding: 4px 8px; }
 
+  /* ---------- Main ---------- */
   .main{ flex:1; display:flex; flex-direction:column; min-width:0; }
   .topbar{
     display:flex;
@@ -182,6 +184,7 @@
   .empty-title{ color: var(--text-muted); font-size:14px; font-weight:700; }
   .empty-sub{ font-size:12.5px; color: var(--text-dim); }
 
+  /* ---------- Responsive: phones ---------- */
   @media (max-width: 720px){
     .sidebar{ width:60px; }
     .nav-label{ display:none; }
@@ -205,6 +208,7 @@
     .row-actions{ grid-row: 1; grid-column:2; align-items:flex-start; }
   }
 
+  /* ---------- New Project modal ---------- */
   .overlay{
     position:fixed; inset:0;
     background: rgba(0,0,0,0.75);
@@ -336,6 +340,7 @@
     flex-shrink:0;
   }
 
+  /* mobile layout for New Project modal */
   @media (max-width: 720px){
     .overlay{ padding:0; }
     .np-modal{ width:100vw; max-width:100vw; height:100vh; max-height:100vh; border-radius:0; }
@@ -364,11 +369,123 @@
   }
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
   .np-field input[readonly]{ color: var(--text-muted); }
+
+  /* ================= Editor View ================= */
+  .editor-view{
+    position:fixed; inset:0; background: var(--bg); z-index:30;
+    display:none;
+  }
+  .editor-view.open{ display:block; }
+
+  .editor-loading{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:18px; background:#000;
+  }
+  .ed-logo{
+    width:46px; height:46px; border-radius:10px;
+    border:3px solid #333; border-top-color:#eee;
+    animation: ed-spin 0.9s linear infinite;
+  }
+  @keyframes ed-spin{ to{ transform: rotate(360deg); } }
+  .ed-loading-text{ color: var(--text-dim); font-size:13px; }
+
+  .editor-shell{ height:100%; display:flex; flex-direction:column; }
+  .ed-topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 10px 14px; border-bottom:1px solid var(--border); flex-shrink:0;
+  }
+  .ed-back{
+    background:transparent; border:1px solid var(--border); color:var(--text);
+    padding:7px 12px; border-radius:8px; font-size:13px; cursor:pointer; font-family:'Tajawal',sans-serif;
+  }
+  .ed-back:hover{ background: var(--row-hover); }
+  .ed-title{ font-size:13px; color: var(--text-muted); font-weight:700; }
+  .ed-controls{ display:flex; gap:6px; }
+  .ed-icon-btn{
+    width:28px; height:28px; border-radius:6px; background: var(--panel);
+    border:1px solid var(--border); color: var(--text-dim);
+    display:flex; align-items:center; justify-content:center; font-size:11px;
+  }
+
+  .ed-grid{
+    flex:1; min-height:0;
+    display:grid;
+    grid-template-columns: var(--ed-col1, 200px) 4px var(--ed-col3, 1fr) 4px var(--ed-col5, 220px);
+    grid-template-rows: var(--ed-row1, 1fr) 4px var(--ed-row3, 200px);
+  }
+  .ed-panel{ display:flex; flex-direction:column; min-width:0; min-height:0; overflow:hidden; background: var(--panel); }
+  .ed-hierarchy{ grid-column:1; grid-row:1; border-left:1px solid var(--border); border-bottom:1px solid var(--border); }
+  .ed-scene{ grid-column:3; grid-row:1; border-bottom:1px solid var(--border); }
+  .ed-inspector{ grid-column:5; grid-row:1; border-right:1px solid var(--border); border-bottom:1px solid var(--border); }
+  .ed-project{ grid-column:1 / span 5; grid-row:3; }
+
+  #rzHierScene{ grid-column:2; grid-row:1; }
+  #rzSceneInsp{ grid-column:4; grid-row:1; }
+  #rzTopBottom{ grid-column:1 / span 5; grid-row:2; }
+
+  .ed-resizer{ background: var(--border); }
+  .ed-resizer-v{ cursor: col-resize; }
+  .ed-resizer-h{ cursor: row-resize; }
+  .ed-resizer:hover, .ed-resizer.dragging{ background:#4a4a4a; }
+
+  .ed-panel-head{
+    display:flex; align-items:center; gap:12px;
+    padding: 7px 12px; font-size:11.5px; color: var(--text-dim); font-weight:700;
+    border-bottom:1px solid var(--border); flex-shrink:0;
+  }
+  .ed-tab{ cursor:default; padding:2px 0; }
+  .ed-tab.active{ color: var(--text); border-bottom:2px solid var(--text-dim); }
+
+  .ed-panel-body{ flex:1; min-height:0; overflow-y:auto; padding:8px; }
+  .ed-tree-item{ font-size:12.5px; color: var(--text-muted); padding:4px 6px; border-radius:5px; }
+  .ed-tree-item.ed-tree-child{ padding-right:18px; }
+  #edSceneRoot{ color: var(--text); font-weight:700; }
+
+  .ed-scene-canvas{
+    background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-color:#0d0d0d;
+    padding:0;
+  }
+
+  .ed-inspector-body{ font-size:12.5px; color: var(--text-dim); text-align:center; padding-top:30px; }
+
+  .ed-project-body{ display:flex; flex-direction:column; padding:0; }
+  .ed-project-tabs{ display:flex; gap:6px; padding:8px 10px 0; flex-shrink:0; }
+  .ed-folder-tab{
+    background: var(--surface-2); border:1px solid var(--border); color: var(--text-muted);
+    padding:5px 12px; border-radius:7px; font-size:12px; cursor:pointer;
+  }
+  .ed-folder-tab.active{ background: var(--row-hover); color: var(--text); font-weight:700; }
+  .ed-project-toolbar{ padding:8px 10px; flex-shrink:0; }
+  .ed-file-grid{
+    flex:1; overflow-y:auto; padding: 4px 10px 14px;
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap:10px;
+  }
+  .ed-file-item{
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    padding:8px 4px; border-radius:8px; cursor:pointer; position:relative;
+  }
+  .ed-file-item:hover{ background: var(--row-hover); }
+  .ed-file-icon{
+    width:34px; height:34px; border-radius:6px;
+    background: var(--surface-2); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; color:var(--text-muted);
+  }
+  .ed-file-icon svg{ width:17px; height:17px; }
+  .ed-file-name{ font-size:11px; color:var(--text-muted); text-align:center; word-break:break-word; max-width:100%; }
+  .ed-file-del{
+    position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%;
+    background: var(--panel); border:1px solid var(--border); color: var(--text-dim);
+    font-size:11px; display:flex; align-items:center; justify-content:center;
+  }
+  .ed-file-empty{ grid-column:1/-1; text-align:center; color: var(--text-dim); font-size:12.5px; padding:24px; }
 </style>
 </head>
 <body>
 
-<div class="app">
+<div class="app" id="hubView">
   <aside class="sidebar">
     <div class="sidebar-top">
       <div class="avatar">مح</div>
@@ -418,6 +535,7 @@
   </div>
 </div>
 
+<!-- New Project Modal (Unity-Hub style) -->
 <div class="overlay" id="overlay">
   <div class="np-modal">
     <div class="np-header">
@@ -451,6 +569,69 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- ===== Editor View ===== -->
+<div class="editor-view" id="editorView">
+  <div class="editor-loading" id="editorLoading">
+    <div class="ed-logo"></div>
+    <div class="ed-loading-text">جارٍ تحميل المشروع...</div>
+  </div>
+
+  <div class="editor-shell" id="editorShell" style="display:none;">
+    <div class="ed-topbar">
+      <button class="ed-back" id="edBack">‹ المشاريع</button>
+      <div class="ed-title" id="edTitle"></div>
+      <div class="ed-controls">
+        <div class="ed-icon-btn">▶</div>
+        <div class="ed-icon-btn">❚❚</div>
+        <div class="ed-icon-btn">▸</div>
+      </div>
+    </div>
+
+    <div class="ed-grid" id="edGrid">
+      <div class="ed-panel ed-hierarchy">
+        <div class="ed-panel-head">Hierarchy</div>
+        <div class="ed-panel-body">
+          <div class="ed-tree-item" id="edSceneRoot">SampleScene*</div>
+          <div class="ed-tree-item ed-tree-child">Main Camera</div>
+        </div>
+      </div>
+
+      <div class="ed-resizer ed-resizer-v" id="rzHierScene"></div>
+
+      <div class="ed-panel ed-scene">
+        <div class="ed-panel-head">
+          <span class="ed-tab active">Scene</span>
+          <span class="ed-tab">Game</span>
+        </div>
+        <div class="ed-panel-body ed-scene-canvas"></div>
+      </div>
+
+      <div class="ed-resizer ed-resizer-v" id="rzSceneInsp"></div>
+
+      <div class="ed-panel ed-inspector">
+        <div class="ed-panel-head">Inspector</div>
+        <div class="ed-panel-body ed-inspector-body">اختر عنصرًا لعرض خصائصه</div>
+      </div>
+
+      <div class="ed-resizer ed-resizer-h" id="rzTopBottom"></div>
+
+      <div class="ed-panel ed-project">
+        <div class="ed-panel-head">
+          <span class="ed-tab active">Project</span>
+          <span class="ed-tab">Console</span>
+        </div>
+        <div class="ed-panel-body ed-project-body">
+          <div class="ed-project-tabs" id="edFolderTabs"></div>
+          <div class="ed-project-toolbar">
+            <button class="btn btn-outline" id="edNewFileBtn">+ ملف جديد</button>
+          </div>
+          <div class="ed-file-grid" id="edFileGrid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 const tableWrap = document.getElementById('tableWrap');
 const overlay = document.getElementById('overlay');
@@ -460,6 +641,7 @@ const npCategories = document.getElementById('npCategories');
 const rootHint = document.getElementById('rootHint');
 const toastEl = document.getElementById('toast');
 
+/* ================= التخزين ================= */
 const ROOT_DIR = 'MyEngine/Projects';
 const SUBFOLDERS = ['assets', 'scenes', 'scripts'];
 const Cap = window.Capacitor;
@@ -509,6 +691,7 @@ async function initStorage(){
   rootHint.textContent = 'مكان الحفظ: ' + rootPath + (baseDir === 'DATA' ? '  (مساحة التطبيق الخاصة)' : '');
 }
 
+/* --- نسخة الملفات الحقيقية --- */
 const nativeStore = {
   async list(){
     const res = await FS.readdir({ path: ROOT_DIR, directory: baseDir });
@@ -549,6 +732,7 @@ const nativeStore = {
   }
 };
 
+/* --- نسخة المعاينة (داخل Claude) --- */
 const previewStore = {
   async list(){
     try{
@@ -582,6 +766,7 @@ const previewStore = {
 const store = isNative ? nativeStore : previewStore;
 let projects = [];
 
+/* ================= القوالب ================= */
 const templates = [
   { id:'empty2d', cat:'core', name:'2D فارغ', sub:'أساسية',
     desc:'مشروع فارغ مُعد للألعاب ثنائية الأبعاد. يبدأ بمشهد نظيف من غير أي عناصر.' },
@@ -656,6 +841,7 @@ function renderPreview(){
   update();
 }
 
+/* ================= قائمة المشاريع ================= */
 function formatDate(ts){
   const d = new Date(ts);
   const now = new Date();
@@ -696,7 +882,8 @@ function renderProjects(){
     row.addEventListener('click', async (e) => {
       if(e.target.dataset.remove) return;
       const p = projects.find(x => x.folder === row.dataset.folder);
-      try{ await store.touch(p); await refresh(); }catch(err){ showToast('تعذّر تحديث المشروع'); }
+      try{ await store.touch(p); }catch(err){}
+      openEditor(p);
     });
   });
   tableWrap.querySelectorAll('[data-remove]').forEach(btn => {
@@ -715,6 +902,7 @@ async function refresh(){
   renderProjects();
 }
 
+/* ================= النافذة ================= */
 function openModal(){
   selectedTemplate = templates[0];
   activeCat = 'all';
@@ -748,9 +936,195 @@ document.getElementById('npCreate').addEventListener('click', async () => {
   }
 });
 
+/* ================= المحرر ================= */
+const editorView = document.getElementById('editorView');
+const editorLoading = document.getElementById('editorLoading');
+const editorShell = document.getElementById('editorShell');
+const edTitle = document.getElementById('edTitle');
+const edFolderTabs = document.getElementById('edFolderTabs');
+const edFileGrid = document.getElementById('edFileGrid');
+const edGrid = document.getElementById('edGrid');
+
+let currentProject = null;
+let currentFolder = 'assets';
+const EDITOR_FOLDERS = [
+  { key:'assets', label:'Assets' },
+  { key:'scenes', label:'Scenes' },
+  { key:'scripts', label:'Scripts' },
+];
+
+function fileIcon(){
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v3h3"/></svg>';
+}
+
+/* --- عمليات الملفات: نسخة حقيقية --- */
+const nativeFiles = {
+  async list(project, folder){
+    const path = `${ROOT_DIR}/${project.folder}/${folder}`;
+    try{
+      const res = await FS.readdir({ path, directory: baseDir });
+      return res.files.filter(f => f.type !== 'directory').map(f => f.name);
+    }catch(e){ return []; }
+  },
+  async create(project, folder, name){
+    const path = `${ROOT_DIR}/${project.folder}/${folder}/${name}`;
+    await FS.writeFile({ path, directory: baseDir, data: '', encoding: 'utf8' });
+  },
+  async remove(project, folder, name){
+    const path = `${ROOT_DIR}/${project.folder}/${folder}/${name}`;
+    await FS.deleteFile({ path, directory: baseDir });
+  }
+};
+
+/* --- عمليات الملفات: نسخة المعاينة --- */
+const previewFiles = {
+  async _all(project){
+    try{
+      const r = await window.storage.get(`files-${project.id}`, false);
+      return r ? JSON.parse(r.value) : {};
+    }catch(e){ return {}; }
+  },
+  async _save(project, data){
+    try{ await window.storage.set(`files-${project.id}`, JSON.stringify(data), false); }catch(e){}
+  },
+  async list(project, folder){
+    const data = await this._all(project);
+    return Object.keys(data[folder] || {});
+  },
+  async create(project, folder, name){
+    const data = await this._all(project);
+    if(!data[folder]) data[folder] = {};
+    data[folder][name] = '';
+    await this._save(project, data);
+  },
+  async remove(project, folder, name){
+    const data = await this._all(project);
+    if(data[folder]) delete data[folder][name];
+    await this._save(project, data);
+  }
+};
+
+const files = isNative ? nativeFiles : previewFiles;
+
+function renderFolderTabs(){
+  edFolderTabs.innerHTML = EDITOR_FOLDERS.map(f => `
+    <button class="ed-folder-tab ${f.key === currentFolder ? 'active' : ''}" data-folder="${f.key}">${f.label}</button>
+  `).join('');
+  edFolderTabs.querySelectorAll('.ed-folder-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentFolder = btn.dataset.folder;
+      renderFolderTabs();
+      renderFileGrid();
+    });
+  });
+}
+
+async function renderFileGrid(){
+  const names = await files.list(currentProject, currentFolder);
+  if(names.length === 0){
+    edFileGrid.innerHTML = `<div class="ed-file-empty">مفيش ملفات هنا لسه</div>`;
+    return;
+  }
+  edFileGrid.innerHTML = names.map(n => `
+    <div class="ed-file-item" data-name="${esc(n)}">
+      <button class="ed-file-del" data-del="${esc(n)}">×</button>
+      <div class="ed-file-icon">${fileIcon()}</div>
+      <div class="ed-file-name">${esc(n)}</div>
+    </div>
+  `).join('');
+  edFileGrid.querySelectorAll('[data-del]').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      try{ await files.remove(currentProject, currentFolder, btn.dataset.del); await renderFileGrid(); }
+      catch(err){ showToast('تعذّر حذف الملف'); }
+    });
+  });
+}
+
+document.getElementById('edNewFileBtn').addEventListener('click', async () => {
+  const name = prompt('اسم الملف الجديد:');
+  if(!name) return;
+  const clean = name.trim();
+  if(!clean) return;
+  try{
+    await files.create(currentProject, currentFolder, clean);
+    await renderFileGrid();
+    showToast('تم إنشاء الملف');
+  }catch(e){ showToast('تعذّر إنشاء الملف'); }
+});
+
+document.getElementById('edBack').addEventListener('click', closeEditor);
+
+function closeEditor(){
+  editorView.classList.remove('open');
+  document.getElementById('hubView').style.display = '';
+  currentProject = null;
+  refresh();
+}
+
+async function openEditor(project){
+  currentProject = project;
+  currentFolder = 'assets';
+  document.getElementById('hubView').style.display = 'none';
+  editorView.classList.add('open');
+  editorShell.style.display = 'none';
+  editorLoading.style.display = 'flex';
+  edTitle.textContent = project.name;
+
+  renderFolderTabs();
+  await renderFileGrid();
+
+  setTimeout(() => {
+    editorLoading.style.display = 'none';
+    editorShell.style.display = 'flex';
+  }, 900);
+}
+
+/* --- تحريك حدود اللوحات --- */
+function setupResizers(){
+  const root = document.documentElement;
+  function dragResizer(el, onMove){
+    let dragging = false;
+    const start = (e) => {
+      dragging = true;
+      el.classList.add('dragging');
+      e.preventDefault();
+    };
+    const move = (e) => {
+      if(!dragging) return;
+      const point = e.touches ? e.touches[0] : e;
+      onMove(point);
+    };
+    const end = () => { dragging = false; el.classList.remove('dragging'); };
+    el.addEventListener('mousedown', start);
+    el.addEventListener('touchstart', start, { passive:false });
+    window.addEventListener('mousemove', move);
+    window.addEventListener('touchmove', move, { passive:false });
+    window.addEventListener('mouseup', end);
+    window.addEventListener('touchend', end);
+  }
+
+  dragResizer(document.getElementById('rzHierScene'), (p) => {
+    const rect = edGrid.getBoundingClientRect();
+    const w = Math.max(120, Math.min(rect.width * 0.5, p.clientX - rect.left));
+    root.style.setProperty('--ed-col1', w + 'px');
+  });
+  dragResizer(document.getElementById('rzSceneInsp'), (p) => {
+    const rect = edGrid.getBoundingClientRect();
+    const w = Math.max(140, Math.min(rect.width * 0.5, rect.right - p.clientX));
+    root.style.setProperty('--ed-col5', w + 'px');
+  });
+  dragResizer(document.getElementById('rzTopBottom'), (p) => {
+    const rect = edGrid.getBoundingClientRect();
+    const h = Math.max(90, Math.min(rect.height * 0.7, rect.bottom - p.clientY));
+    root.style.setProperty('--ed-row3', h + 'px');
+  });
+}
+
 (async function start(){
   await initStorage();
   await refresh();
+  setupResizers();
 })();
 </script>
 
