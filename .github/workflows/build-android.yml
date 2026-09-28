@@ -32,6 +32,10 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
+      - name: Force landscape orientation
+        run: |
+          sed -i 's/android:configChanges=/android:screenOrientation="landscape"\n            android:configChanges=/' android/app/src/main/AndroidManifest.xml
+
       - name: Build debug APK
         run: |
           cd android
