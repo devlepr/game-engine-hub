@@ -452,35 +452,111 @@
   .ed-inspector-body{ font-size:12.5px; color: var(--text-dim); text-align:center; padding-top:30px; }
 
   .ed-project-body{ display:flex; flex-direction:column; padding:0; }
-  .ed-project-tabs{ display:flex; gap:6px; padding:8px 10px 0; flex-shrink:0; }
-  .ed-folder-tab{
-    background: var(--surface-2); border:1px solid var(--border); color: var(--text-muted);
-    padding:5px 12px; border-radius:7px; font-size:12px; cursor:pointer;
+
+  /* --- FS toolbar --- */
+  .ed-fs-toolbar{
+    display:flex; align-items:center; gap:8px;
+    padding: 7px 10px; flex-shrink:0; border-bottom:1px solid var(--border);
   }
-  .ed-folder-tab.active{ background: var(--row-hover); color: var(--text); font-weight:700; }
-  .ed-project-toolbar{ padding:8px 10px; flex-shrink:0; }
-  .ed-file-grid{
-    flex:1; overflow-y:auto; padding: 4px 10px 14px;
+  .ed-fs-icon-btn{
+    background: var(--surface-2); border:1px solid var(--border); color:var(--text-muted);
+    width:28px; height:28px; border-radius:7px; font-size:13px; flex-shrink:0; cursor:pointer;
+  }
+  .ed-fs-icon-btn:hover{ color:var(--text); }
+  .ed-breadcrumb{
+    display:flex; align-items:center; gap:4px; overflow-x:auto; white-space:nowrap;
+    font-size:12px; color: var(--text-muted); flex:1; min-width:0;
+  }
+  .ed-crumb{ cursor:pointer; padding:2px 3px; border-radius:4px; }
+  .ed-crumb:last-child{ color: var(--text); font-weight:700; }
+  .ed-crumb:hover{ background: var(--row-hover); }
+  .ed-crumb-sep{ color: var(--text-dim); }
+  .ed-fs-spacer{ flex:0; }
+
+  /* --- tree + grid layout --- */
+  .ed-fs-main{ flex:1; min-height:0; display:flex; position:relative; }
+  .ed-fs-tree{
+    width:190px; flex-shrink:0; overflow-y:auto; background: var(--panel);
+    border-left:1px solid var(--border); padding:8px 4px;
+  }
+  .ed-fs-tree-backdrop{ display:none; }
+  .ed-tree-row{
+    display:flex; align-items:center; gap:5px; padding:6px 6px; border-radius:6px;
+    font-size:12.5px; color: var(--text-muted); cursor:pointer; white-space:nowrap;
+  }
+  .ed-tree-row:hover{ background: var(--row-hover); }
+  .ed-tree-row.active{ background: var(--row-hover); color: var(--text); font-weight:700; }
+  .ed-tree-arrow{ width:12px; flex-shrink:0; display:inline-block; transition: transform .1s ease; color: var(--text-dim); font-size:9px; }
+  .ed-tree-arrow.open{ transform: rotate(90deg); }
+  .ed-tree-arrow.hidden{ visibility:hidden; }
+
+  .ed-fs-grid{
+    flex:1; overflow-y:auto; padding: 10px;
     display:grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap:10px;
+    align-content:start;
   }
   .ed-file-item{
     display:flex; flex-direction:column; align-items:center; gap:6px;
     padding:8px 4px; border-radius:8px; cursor:pointer; position:relative;
   }
   .ed-file-item:hover{ background: var(--row-hover); }
+  .ed-file-item.cut{ opacity:.45; }
   .ed-file-icon{
-    width:34px; height:34px; border-radius:6px;
+    width:38px; height:38px; border-radius:6px;
     background: var(--surface-2); border:1px solid var(--border);
     display:flex; align-items:center; justify-content:center; color:var(--text-muted);
+    overflow:hidden;
   }
-  .ed-file-icon svg{ width:17px; height:17px; }
+  .ed-file-icon svg{ width:18px; height:18px; }
+  .ed-file-icon img{ width:100%; height:100%; object-fit:cover; }
   .ed-file-name{ font-size:11px; color:var(--text-muted); text-align:center; word-break:break-word; max-width:100%; }
-  .ed-file-del{
-    position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%;
-    background: var(--panel); border:1px solid var(--border); color: var(--text-dim);
-    font-size:11px; display:flex; align-items:center; justify-content:center;
-  }
   .ed-file-empty{ grid-column:1/-1; text-align:center; color: var(--text-dim); font-size:12.5px; padding:24px; }
+
+  /* --- bottom sheet (add menu) --- */
+  .ed-sheet-overlay{
+    position:fixed; inset:0; background: rgba(0,0,0,.6); z-index:40;
+    display:flex; align-items:flex-end; justify-content:center;
+    opacity:0; pointer-events:none; transition: opacity .15s ease;
+  }
+  .ed-sheet-overlay.open{ opacity:1; pointer-events:auto; }
+  .ed-sheet{
+    background: var(--sidebar); border:1px solid var(--border); border-bottom:none;
+    border-radius:14px 14px 0 0; width:100%; max-width:420px; padding:10px;
+    transform: translateY(12px); transition: transform .15s ease;
+  }
+  .ed-sheet-overlay.open .ed-sheet{ transform: translateY(0); }
+  .ed-sheet-item{
+    padding:13px 14px; font-size:14px; color: var(--text); border-radius:9px; cursor:pointer;
+    display:flex; align-items:center; gap:10px;
+  }
+  .ed-sheet-item:hover{ background: var(--row-hover); }
+  .ed-sheet-item.danger{ color: var(--danger); }
+  .ed-sheet-sep{ height:1px; background: var(--border); margin:6px 4px; }
+
+  /* --- context menu --- */
+  .ed-ctx-menu{
+    position:fixed; z-index:45; background: var(--sidebar); border:1px solid var(--border);
+    border-radius:10px; min-width:170px; padding:6px; display:none;
+    box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  }
+  .ed-ctx-menu.open{ display:block; }
+  .ed-ctx-item{ padding:9px 12px; font-size:13px; color: var(--text); border-radius:7px; cursor:pointer; }
+  .ed-ctx-item:hover{ background: var(--row-hover); }
+  .ed-ctx-item.danger{ color: var(--danger); }
+  .ed-ctx-sep{ height:1px; background: var(--border); margin:4px 4px; }
+
+  @media (max-width: 720px){
+    .ed-fs-tree{
+      position:absolute; inset:0 auto 0 0; z-index:12; width:75%; max-width:260px;
+      transform: translateX(100%); transition: transform .18s ease; border-left:none; border-right:1px solid var(--border);
+      box-shadow: -6px 0 16px rgba(0,0,0,.3);
+    }
+    .ed-fs-tree.open{ transform: translateX(0); }
+    .ed-fs-tree-backdrop{
+      display:none; position:absolute; inset:0; background:rgba(0,0,0,.5); z-index:11;
+    }
+    .ed-fs-tree-backdrop.open{ display:block; }
+  }
 </style>
 </head>
 <body>
@@ -621,16 +697,31 @@
           <span class="ed-tab">Console</span>
         </div>
         <div class="ed-panel-body ed-project-body">
-          <div class="ed-project-tabs" id="edFolderTabs"></div>
-          <div class="ed-project-toolbar">
-            <button class="btn btn-outline" id="edNewFileBtn">+ ملف جديد</button>
+          <div class="ed-fs-toolbar">
+            <button class="ed-fs-icon-btn" id="edTreeToggle" title="شجرة المشروع">☰</button>
+            <div class="ed-breadcrumb" id="edBreadcrumb"></div>
+            <div class="ed-fs-spacer"></div>
+            <button class="btn btn-outline" id="edPasteBtn" style="display:none;">لصق</button>
+            <button class="btn btn-fill" id="edAddBtn">+ إضافة</button>
           </div>
-          <div class="ed-file-grid" id="edFileGrid"></div>
+          <div class="ed-fs-main">
+            <div class="ed-fs-tree-backdrop" id="edTreeBackdrop"></div>
+            <div class="ed-fs-tree" id="edTree"></div>
+            <div class="ed-fs-grid" id="edFileGrid"></div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<input type="file" id="edImportInput" style="display:none">
+
+<div class="ed-sheet-overlay" id="edSheetOverlay">
+  <div class="ed-sheet" id="edSheet"></div>
+</div>
+
+<div class="ed-ctx-menu" id="edCtxMenu"></div>
 
 <script>
 const tableWrap = document.getElementById('tableWrap');
@@ -941,116 +1032,510 @@ const editorView = document.getElementById('editorView');
 const editorLoading = document.getElementById('editorLoading');
 const editorShell = document.getElementById('editorShell');
 const edTitle = document.getElementById('edTitle');
-const edFolderTabs = document.getElementById('edFolderTabs');
-const edFileGrid = document.getElementById('edFileGrid');
 const edGrid = document.getElementById('edGrid');
+const edBreadcrumb = document.getElementById('edBreadcrumb');
+const edTree = document.getElementById('edTree');
+const edTreeBackdrop = document.getElementById('edTreeBackdrop');
+const edFileGrid = document.getElementById('edFileGrid');
+const edPasteBtn = document.getElementById('edPasteBtn');
+const edImportInput = document.getElementById('edImportInput');
+const edSheetOverlay = document.getElementById('edSheetOverlay');
+const edSheet = document.getElementById('edSheet');
+const edCtxMenu = document.getElementById('edCtxMenu');
 
 let currentProject = null;
-let currentFolder = 'assets';
-const EDITOR_FOLDERS = [
-  { key:'assets', label:'Assets' },
-  { key:'scenes', label:'Scenes' },
-  { key:'scripts', label:'Scripts' },
-];
+let currentPath = [];      // array of folder names, relative to project root
+let clipboard = null;      // { path:[...], name, isDir, mode:'copy'|'cut' }
 
-function fileIcon(){
-  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v3h3"/></svg>';
+const DEFAULT_TREE_SKELETON = {
+  Assets: { Art: { Textures:{}, Materials:{}, Models:{} }, Audio:{}, Scenes:{}, Fonts:{}, UI:{}, Prefabs:{} },
+  Packages: {},
+  Scripts: {}
+};
+
+function extOf(name){ const m = name.match(/\.([a-zA-Z0-9]+)$/); return m ? m[1].toLowerCase() : ''; }
+function kindOf(name){
+  const ext = extOf(name);
+  if(['png','jpg','jpeg','gif','webp','bmp'].includes(ext)) return 'image';
+  if(['ogg','wav','mp3','m4a'].includes(ext)) return 'audio';
+  if(['ttf','otf','woff','woff2'].includes(ext)) return 'font';
+  if(['js','gd','cs','py','ts'].includes(ext)) return 'script';
+  if(['scene'].includes(ext)) return 'scene';
+  if(['zip','rar','7z'].includes(ext)) return 'archive';
+  if(['txt','md','json'].includes(ext)) return 'text';
+  return 'unknown';
+}
+function isTextKind(kind){ return ['script','scene','text'].includes(kind); }
+function mimeFor(name){
+  const ext = extOf(name);
+  return { png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', gif:'image/gif', webp:'image/webp', bmp:'image/bmp' }[ext] || 'application/octet-stream';
+}
+function iconSvgFor(kind){
+  const map = {
+    folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/>',
+    audio:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+    font:'<text x="3" y="18" font-size="15" fill="currentColor" stroke="none" font-family="sans-serif">Aa</text>',
+    script:'<path d="M8 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M9.5 13l-2 2 2 2M14.5 13l2 2-2 2"/>',
+    scene:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>',
+    text:'<path d="M8 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h5"/>',
+    archive:'<path d="M21 8H3v13h18z"/><path d="M3 8l2-5h14l2 5"/><path d="M10 12h4"/>',
+    unknown:'<path d="M6 3h9l3 3v15H6z"/><path d="M15 3v3h3"/>'
+  };
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">${map[kind]||map.unknown}</svg>`;
 }
 
-/* --- عمليات الملفات: نسخة حقيقية --- */
-const nativeFiles = {
-  async list(project, folder){
-    const path = `${ROOT_DIR}/${project.folder}/${folder}`;
+/* --- عمليات نظام الملفات: نسخة حقيقية (Capacitor Filesystem) --- */
+const nativeFS = {
+  _rel(pathArr, name){ return name ? [...pathArr, name].join('/') : pathArr.join('/'); },
+  _full(project, rel){ return rel ? `${ROOT_DIR}/${project.folder}/${rel}` : `${ROOT_DIR}/${project.folder}`; },
+  async list(project, pathArr){
+    const path = this._full(project, this._rel(pathArr));
     try{
       const res = await FS.readdir({ path, directory: baseDir });
-      return res.files.filter(f => f.type !== 'directory').map(f => f.name);
-    }catch(e){ return []; }
+      const folders=[], filesOut=[];
+      for(const f of res.files){
+        if(f.name === 'project.json') continue;
+        if(f.type === 'directory') folders.push({ name:f.name });
+        else filesOut.push({ name:f.name, size:f.size||0, mtime:f.mtime||0 });
+      }
+      folders.sort((a,b)=>a.name.localeCompare(b.name));
+      filesOut.sort((a,b)=>a.name.localeCompare(b.name));
+      return { folders, files: filesOut };
+    }catch(e){ return { folders:[], files:[] }; }
   },
-  async create(project, folder, name){
-    const path = `${ROOT_DIR}/${project.folder}/${folder}/${name}`;
-    await FS.writeFile({ path, directory: baseDir, data: '', encoding: 'utf8' });
+  async mkdir(project, pathArr, name){
+    await FS.mkdir({ path: this._full(project, this._rel(pathArr, name)), directory: baseDir, recursive: true });
   },
-  async remove(project, folder, name){
-    const path = `${ROOT_DIR}/${project.folder}/${folder}/${name}`;
-    await FS.deleteFile({ path, directory: baseDir });
+  async ensureDir(project, pathArr){
+    if(!pathArr.length) return;
+    try{ await FS.mkdir({ path: this._full(project, this._rel(pathArr)), directory: baseDir, recursive: true }); }catch(e){}
+  },
+  async writeFile(project, pathArr, name, data, encoding){
+    const opts = { path: this._full(project, this._rel(pathArr, name)), directory: baseDir, data };
+    if(encoding) opts.encoding = encoding;
+    await FS.writeFile(opts);
+  },
+  async readFile(project, pathArr, name, encoding){
+    const opts = { path: this._full(project, this._rel(pathArr, name)), directory: baseDir };
+    if(encoding) opts.encoding = encoding;
+    const r = await FS.readFile(opts);
+    return r.data;
+  },
+  async rename(project, pathArr, oldName, newName){
+    const rel = this._rel(pathArr);
+    await FS.rename({
+      from: this._full(project, rel ? rel+'/'+oldName : oldName),
+      to: this._full(project, rel ? rel+'/'+newName : newName),
+      directory: baseDir, toDirectory: baseDir
+    });
+  },
+  async copy(project, srcPathArr, name, destPathArr){
+    await FS.copy({
+      from: this._full(project, this._rel(srcPathArr, name)),
+      to: this._full(project, this._rel(destPathArr, name)),
+      directory: baseDir, toDirectory: baseDir
+    });
+  },
+  async move(project, srcPathArr, name, destPathArr){
+    await FS.rename({
+      from: this._full(project, this._rel(srcPathArr, name)),
+      to: this._full(project, this._rel(destPathArr, name)),
+      directory: baseDir, toDirectory: baseDir
+    });
+  },
+  async remove(project, pathArr, name, isDir){
+    const path = this._full(project, this._rel(pathArr, name));
+    if(isDir) await FS.rmdir({ path, directory: baseDir, recursive: true });
+    else await FS.deleteFile({ path, directory: baseDir });
   }
 };
 
-/* --- عمليات الملفات: نسخة المعاينة --- */
-const previewFiles = {
-  async _all(project){
+/* --- عمليات نظام الملفات: نسخة المعاينة (شجرة افتراضية) --- */
+function seedVfs(skeleton){
+  const children = {};
+  for(const [name, sub] of Object.entries(skeleton)){
+    children[name] = { type:'dir', children: seedVfs(sub) };
+  }
+  return children;
+}
+const previewFS = {
+  async _root(project){
     try{
-      const r = await window.storage.get(`files-${project.id}`, false);
-      return r ? JSON.parse(r.value) : {};
-    }catch(e){ return {}; }
+      const r = await window.storage.get(`vfs-${project.id}`, false);
+      if(r) return JSON.parse(r.value);
+    }catch(e){}
+    return { type:'dir', children: seedVfs(DEFAULT_TREE_SKELETON) };
   },
-  async _save(project, data){
-    try{ await window.storage.set(`files-${project.id}`, JSON.stringify(data), false); }catch(e){}
+  async _save(project, root){ try{ await window.storage.set(`vfs-${project.id}`, JSON.stringify(root), false); }catch(e){} },
+  _nav(root, pathArr){
+    let node = root;
+    for(const p of pathArr){
+      if(!node || node.type !== 'dir' || !node.children[p]) return null;
+      node = node.children[p];
+    }
+    return node;
   },
-  async list(project, folder){
-    const data = await this._all(project);
-    return Object.keys(data[folder] || {});
+  async list(project, pathArr){
+    const root = await this._root(project);
+    const node = this._nav(root, pathArr);
+    if(!node || !node.children) return { folders:[], files:[] };
+    const folders=[], filesOut=[];
+    for(const [name, child] of Object.entries(node.children)){
+      if(child.type === 'dir') folders.push({ name });
+      else filesOut.push({ name, size: child.size||0, mtime: child.mtime||Date.now() });
+    }
+    folders.sort((a,b)=>a.name.localeCompare(b.name));
+    filesOut.sort((a,b)=>a.name.localeCompare(b.name));
+    return { folders, files: filesOut };
   },
-  async create(project, folder, name){
-    const data = await this._all(project);
-    if(!data[folder]) data[folder] = {};
-    data[folder][name] = '';
-    await this._save(project, data);
+  async mkdir(project, pathArr, name){
+    const root = await this._root(project);
+    const node = this._nav(root, pathArr);
+    if(node && !node.children[name]) node.children[name] = { type:'dir', children:{} };
+    await this._save(project, root);
   },
-  async remove(project, folder, name){
-    const data = await this._all(project);
-    if(data[folder]) delete data[folder][name];
-    await this._save(project, data);
+  async ensureDir(project, pathArr){
+    const root = await this._root(project);
+    let node = root;
+    for(const p of pathArr){
+      if(!node.children[p]) node.children[p] = { type:'dir', children:{} };
+      node = node.children[p];
+    }
+    await this._save(project, root);
+  },
+  async writeFile(project, pathArr, name, data){
+    const root = await this._root(project);
+    const node = this._nav(root, pathArr);
+    if(node) node.children[name] = { type:'file', content:data, size:(data||'').length, mtime:Date.now() };
+    await this._save(project, root);
+  },
+  async readFile(project, pathArr, name){
+    const root = await this._root(project);
+    const node = this._nav(root, pathArr);
+    return (node && node.children[name]) ? node.children[name].content : '';
+  },
+  async rename(project, pathArr, oldName, newName){
+    const root = await this._root(project);
+    const node = this._nav(root, pathArr);
+    if(node && node.children[oldName]){ node.children[newName] = node.children[oldName]; delete node.children[oldName]; }
+    await this._save(project, root);
+  },
+  async copy(project, srcPathArr, name, destPathArr){
+    const root = await this._root(project);
+    const src = this._nav(root, srcPathArr), dest = this._nav(root, destPathArr);
+    if(src && dest && src.children[name]) dest.children[name] = JSON.parse(JSON.stringify(src.children[name]));
+    await this._save(project, root);
+  },
+  async move(project, srcPathArr, name, destPathArr){
+    const root = await this._root(project);
+    const src = this._nav(root, srcPathArr), dest = this._nav(root, destPathArr);
+    if(src && dest && src.children[name]){ dest.children[name] = src.children[name]; delete src.children[name]; }
+    await this._save(project, root);
+  },
+  async remove(project, pathArr, name){
+    const root = await this._root(project);
+    const node = this._nav(root, pathArr);
+    if(node) delete node.children[name];
+    await this._save(project, root);
   }
 };
 
-const files = isNative ? nativeFiles : previewFiles;
+const fsOps = isNative ? nativeFS : previewFS;
 
-function renderFolderTabs(){
-  edFolderTabs.innerHTML = EDITOR_FOLDERS.map(f => `
-    <button class="ed-folder-tab ${f.key === currentFolder ? 'active' : ''}" data-folder="${f.key}">${f.label}</button>
-  `).join('');
-  edFolderTabs.querySelectorAll('.ed-folder-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentFolder = btn.dataset.folder;
-      renderFolderTabs();
-      renderFileGrid();
+/* --- شجرة المشروع --- */
+async function buildFolderTree(project, pathArr, depth){
+  if(depth > 8) return [];
+  const { folders } = await fsOps.list(project, pathArr);
+  const out = [];
+  for(const f of folders){
+    const childPath = [...pathArr, f.name];
+    out.push({ name: f.name, path: childPath, children: await buildFolderTree(project, childPath, depth+1) });
+  }
+  return out;
+}
+
+let treeData = [];
+let expandedPaths = new Set();
+
+function pathKey(p){ return p.join('/'); }
+
+function renderTreeNodes(nodes, depth){
+  return nodes.map(n => {
+    const key = pathKey(n.path);
+    const isOpen = expandedPaths.has(key);
+    const isActive = pathKey(currentPath) === key;
+    const hasChildren = n.children.length > 0;
+    return `
+      <div>
+        <div class="ed-tree-row ${isActive ? 'active':''}" data-path="${esc(key)}" style="padding-right:${8 + depth*14}px">
+          <span class="ed-tree-arrow ${hasChildren ? (isOpen?'open':''):'hidden'}" data-arrow="${esc(key)}">▶</span>
+          <span>${esc(n.name)}</span>
+        </div>
+        ${isOpen && hasChildren ? `<div>${renderTreeNodes(n.children, depth+1)}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function renderTree(){
+  edTree.innerHTML = renderTreeNodes(treeData, 0);
+  edTree.querySelectorAll('[data-arrow]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const key = el.dataset.arrow;
+      if(expandedPaths.has(key)) expandedPaths.delete(key); else expandedPaths.add(key);
+      renderTree();
+    });
+  });
+  edTree.querySelectorAll('.ed-tree-row').forEach(el => {
+    el.addEventListener('click', () => {
+      const key = el.dataset.path;
+      currentPath = key ? key.split('/') : [];
+      expandedPaths.add(key);
+      renderTree();
+      renderBreadcrumb();
+      renderGrid();
+      closeTreeDrawer();
     });
   });
 }
 
-async function renderFileGrid(){
-  const names = await files.list(currentProject, currentFolder);
-  if(names.length === 0){
-    edFileGrid.innerHTML = `<div class="ed-file-empty">مفيش ملفات هنا لسه</div>`;
+async function refreshTree(){
+  treeData = await buildFolderTree(currentProject, [], 0);
+  renderTree();
+}
+
+function renderBreadcrumb(){
+  const crumbs = [{ name:'المشروع', path:[] }, ...currentPath.map((_, i) => ({ name: currentPath[i], path: currentPath.slice(0, i+1) }))];
+  edBreadcrumb.innerHTML = crumbs.map((c, i) => `
+    ${i>0 ? '<span class="ed-crumb-sep">/</span>' : ''}
+    <span class="ed-crumb" data-path="${esc(pathKey(c.path))}">${esc(c.name)}</span>
+  `).join('');
+  edBreadcrumb.querySelectorAll('.ed-crumb').forEach(el => {
+    el.addEventListener('click', () => {
+      const key = el.dataset.path;
+      currentPath = key ? key.split('/') : [];
+      renderBreadcrumb();
+      renderGrid();
+    });
+  });
+}
+
+function toggleTreeDrawer(){ edTree.classList.toggle('open'); edTreeBackdrop.classList.toggle('open'); }
+function closeTreeDrawer(){ edTree.classList.remove('open'); edTreeBackdrop.classList.remove('open'); }
+document.getElementById('edTreeToggle').addEventListener('click', toggleTreeDrawer);
+edTreeBackdrop.addEventListener('click', closeTreeDrawer);
+
+/* --- شبكة الملفات --- */
+async function renderGrid(){
+  updatePasteBtn();
+  const { folders, files: fileList } = await fsOps.list(currentProject, currentPath);
+  if(folders.length === 0 && fileList.length === 0){
+    edFileGrid.innerHTML = `<div class="ed-file-empty">المجلد فاضي</div>`;
     return;
   }
-  edFileGrid.innerHTML = names.map(n => `
-    <div class="ed-file-item" data-name="${esc(n)}">
-      <button class="ed-file-del" data-del="${esc(n)}">×</button>
-      <div class="ed-file-icon">${fileIcon()}</div>
-      <div class="ed-file-name">${esc(n)}</div>
+  const folderHtml = folders.map(f => `
+    <div class="ed-file-item" data-kind="folder" data-name="${esc(f.name)}" data-isdir="1">
+      <div class="ed-file-icon">${iconSvgFor('folder')}</div>
+      <div class="ed-file-name">${esc(f.name)}</div>
     </div>
   `).join('');
-  edFileGrid.querySelectorAll('[data-del]').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      try{ await files.remove(currentProject, currentFolder, btn.dataset.del); await renderFileGrid(); }
-      catch(err){ showToast('تعذّر حذف الملف'); }
+  const fileHtml = fileList.map(f => {
+    const kind = kindOf(f.name);
+    const cutClass = (clipboard && clipboard.mode==='cut' && clipboard.name===f.name && pathKey(clipboard.path)===pathKey(currentPath)) ? 'cut' : '';
+    return `
+      <div class="ed-file-item ${cutClass}" data-kind="${kind}" data-name="${esc(f.name)}" data-isdir="0">
+        <div class="ed-file-icon" data-thumb="${esc(f.name)}">${iconSvgFor(kind)}</div>
+        <div class="ed-file-name">${esc(f.name)}</div>
+      </div>
+    `;
+  }).join('');
+  edFileGrid.innerHTML = folderHtml + fileHtml;
+
+  edFileGrid.querySelectorAll('.ed-file-item').forEach(el => {
+    const name = el.dataset.name;
+    const isDir = el.dataset.isdir === '1';
+    el.addEventListener('click', () => {
+      if(isDir){
+        currentPath = [...currentPath, name];
+        expandedPaths.add(pathKey(currentPath));
+        renderTree(); renderBreadcrumb(); renderGrid();
+      }else{
+        showToast(name);
+      }
     });
+    attachLongPress(el, (x, y) => openContextMenu(x, y, name, isDir));
+    el.addEventListener('contextmenu', (e) => { e.preventDefault(); openContextMenu(e.clientX, e.clientY, name, isDir); });
   });
+
+  // ثمبنيلز الصور
+  for(const f of fileList){
+    if(kindOf(f.name) !== 'image') continue;
+    const holder = edFileGrid.querySelector(`[data-thumb="${CSS.escape(f.name)}"]`);
+    if(!holder) continue;
+    try{
+      const b64 = await fsOps.readFile(currentProject, currentPath, f.name);
+      if(b64) holder.innerHTML = `<img src="data:${mimeFor(f.name)};base64,${b64}">`;
+    }catch(e){}
+  }
 }
 
-document.getElementById('edNewFileBtn').addEventListener('click', async () => {
-  const name = prompt('اسم الملف الجديد:');
-  if(!name) return;
-  const clean = name.trim();
-  if(!clean) return;
+/* --- الضغط المطول --- */
+function attachLongPress(el, cb){
+  let timer = null, startX = 0, startY = 0, longPressed = false;
+  const clear = () => { if(timer){ clearTimeout(timer); timer = null; } };
+  el.addEventListener('touchstart', (e) => {
+    longPressed = false;
+    const t = e.touches[0];
+    startX = t.clientX; startY = t.clientY;
+    timer = setTimeout(() => { longPressed = true; cb(startX, startY); }, 480);
+  }, { passive:true });
+  el.addEventListener('touchmove', (e) => {
+    const t = e.touches[0];
+    if(Math.abs(t.clientX-startX) > 10 || Math.abs(t.clientY-startY) > 10) clear();
+  }, { passive:true });
+  el.addEventListener('touchend', () => { clear(); });
+  el.addEventListener('click', (e) => { if(longPressed){ e.stopPropagation(); longPressed = false; } });
+}
+
+/* --- قائمة السياق --- */
+let ctxTarget = null;
+function openContextMenu(x, y, name, isDir){
+  ctxTarget = { name, isDir };
+  const items = [
+    { key:'rename', label:'إعادة تسمية' },
+    { key:'copy', label:'نسخ' },
+    { key:'cut', label:'قص' },
+    { key:'sep' },
+    { key:'info', label:'معلومات' },
+    { key:'sep' },
+    { key:'delete', label:'حذف', danger:true },
+  ];
+  edCtxMenu.innerHTML = items.map(it => it.key==='sep'
+    ? '<div class="ed-ctx-sep"></div>'
+    : `<div class="ed-ctx-item ${it.danger?'danger':''}" data-act="${it.key}">${it.label}</div>`
+  ).join('');
+  edCtxMenu.classList.add('open');
+  const menuW = 190, menuH = 210;
+  const left = Math.min(x, window.innerWidth - menuW - 10);
+  const top = Math.min(y, window.innerHeight - menuH - 10);
+  edCtxMenu.style.left = Math.max(8,left) + 'px';
+  edCtxMenu.style.top = Math.max(8,top) + 'px';
+  edCtxMenu.querySelectorAll('[data-act]').forEach(el => {
+    el.addEventListener('click', () => { closeContextMenu(); handleCtxAction(el.dataset.act); });
+  });
+}
+function closeContextMenu(){ edCtxMenu.classList.remove('open'); }
+document.addEventListener('click', (e) => { if(!edCtxMenu.contains(e.target)) closeContextMenu(); });
+
+async function handleCtxAction(act){
+  if(!ctxTarget || !currentProject) return;
+  const { name, isDir } = ctxTarget;
   try{
-    await files.create(currentProject, currentFolder, clean);
-    await renderFileGrid();
+    if(act === 'rename'){
+      const nn = prompt('الاسم الجديد:', name);
+      if(!nn || nn.trim() === '' || nn === name) return;
+      await fsOps.rename(currentProject, currentPath, name, nn.trim());
+      showToast('تم إعادة التسمية');
+    }else if(act === 'copy'){
+      clipboard = { path:[...currentPath], name, isDir, mode:'copy' };
+      showToast('تم النسخ إلى الحافظة');
+    }else if(act === 'cut'){
+      clipboard = { path:[...currentPath], name, isDir, mode:'cut' };
+      showToast('تم القص، الصقه في المكان المطلوب');
+    }else if(act === 'info'){
+      alert(`الاسم: ${name}\nالنوع: ${isDir ? 'مجلد' : kindOf(name)}`);
+      return;
+    }else if(act === 'delete'){
+      if(!confirm(`حذف "${name}" نهائيًا؟`)) return;
+      await fsOps.remove(currentProject, currentPath, name, isDir);
+      showToast('تم الحذف');
+      if(isDir) await refreshTree();
+    }
+    await renderGrid();
+  }catch(e){ console.error(e); showToast('تعذّر تنفيذ العملية'); }
+}
+
+function updatePasteBtn(){
+  edPasteBtn.style.display = clipboard ? '' : 'none';
+}
+edPasteBtn.addEventListener('click', async () => {
+  if(!clipboard) return;
+  try{
+    if(clipboard.mode === 'copy') await fsOps.copy(currentProject, clipboard.path, clipboard.name, currentPath);
+    else{ await fsOps.move(currentProject, clipboard.path, clipboard.name, currentPath); }
+    showToast(clipboard.mode === 'copy' ? 'تم اللصق (نسخ)' : 'تم النقل');
+    if(clipboard.mode === 'cut') clipboard = null;
+    await refreshTree();
+    await renderGrid();
+  }catch(e){ console.error(e); showToast('تعذّر اللصق'); }
+});
+
+/* --- زر إضافة (شيت) --- */
+function openSheet(){
+  edSheet.innerHTML = `
+    <div class="ed-sheet-item" data-sheet="import">📥 استيراد ملف</div>
+    <div class="ed-sheet-item" data-sheet="folder">📁 مجلد جديد</div>
+    <div class="ed-sheet-sep"></div>
+    <div class="ed-sheet-item" data-sheet="script">📝 سكريبت جديد</div>
+    <div class="ed-sheet-item" data-sheet="scene">🎬 مشهد جديد</div>
+    <div class="ed-sheet-item" data-sheet="text">📄 ملف نصي جديد</div>
+    <div class="ed-sheet-sep"></div>
+    <div class="ed-sheet-item" data-sheet="cancel">إلغاء</div>
+  `;
+  edSheet.querySelectorAll('[data-sheet]').forEach(el => {
+    el.addEventListener('click', () => { closeSheet(); handleSheetAction(el.dataset.sheet); });
+  });
+  edSheetOverlay.classList.add('open');
+}
+function closeSheet(){ edSheetOverlay.classList.remove('open'); }
+edSheetOverlay.addEventListener('click', (e) => { if(e.target === edSheetOverlay) closeSheet(); });
+document.getElementById('edAddBtn').addEventListener('click', openSheet);
+
+async function handleSheetAction(act){
+  if(act === 'cancel') return;
+  if(act === 'import'){ edImportInput.click(); return; }
+  if(act === 'folder'){
+    const name = prompt('اسم المجلد الجديد:');
+    if(!name || !name.trim()) return;
+    try{ await fsOps.mkdir(currentProject, currentPath, name.trim()); await refreshTree(); await renderGrid(); showToast('تم إنشاء المجلد'); }
+    catch(e){ showToast('تعذّر إنشاء المجلد'); }
+    return;
+  }
+  const presets = {
+    script: { ext:'.js', content:'// سكريبت جديد\n' },
+    scene:  { ext:'.scene', content:'{}' },
+    text:   { ext:'.txt', content:'' },
+  };
+  const p = presets[act];
+  if(!p) return;
+  let name = prompt('اسم الملف:', 'جديد' + p.ext);
+  if(!name || !name.trim()) return;
+  name = name.trim();
+  if(!name.includes('.')) name += p.ext;
+  try{
+    await fsOps.writeFile(currentProject, currentPath, name, p.content, 'utf8');
+    await renderGrid();
     showToast('تم إنشاء الملف');
   }catch(e){ showToast('تعذّر إنشاء الملف'); }
+}
+
+edImportInput.addEventListener('change', async () => {
+  const file = edImportInput.files[0];
+  edImportInput.value = '';
+  if(!file) return;
+  const isText = file.type.startsWith('text') || ['.js','.gd','.json','.txt','.md'].some(x => file.name.endsWith(x));
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try{
+      let data;
+      if(isText){ data = reader.result; await fsOps.writeFile(currentProject, currentPath, file.name, data, 'utf8'); }
+      else{ data = reader.result.split(',')[1]; await fsOps.writeFile(currentProject, currentPath, file.name, data); }
+      await renderGrid();
+      showToast('تم الاستيراد بنجاح');
+    }catch(e){ console.error(e); showToast('تعذّر استيراد الملف'); }
+  };
+  if(isText) reader.readAsText(file); else reader.readAsDataURL(file);
 });
 
 document.getElementById('edBack').addEventListener('click', closeEditor);
@@ -1059,20 +1544,34 @@ function closeEditor(){
   editorView.classList.remove('open');
   document.getElementById('hubView').style.display = '';
   currentProject = null;
+  clipboard = null;
   refresh();
 }
 
 async function openEditor(project){
   currentProject = project;
-  currentFolder = 'assets';
+  currentPath = [];
+  clipboard = null;
   document.getElementById('hubView').style.display = 'none';
   editorView.classList.add('open');
   editorShell.style.display = 'none';
   editorLoading.style.display = 'flex';
   edTitle.textContent = project.name;
 
-  renderFolderTabs();
-  await renderFileGrid();
+  await fsOps.ensureDir(project, ['Assets','Art','Textures']);
+  await fsOps.ensureDir(project, ['Assets','Art','Materials']);
+  await fsOps.ensureDir(project, ['Assets','Art','Models']);
+  await fsOps.ensureDir(project, ['Assets','Audio']);
+  await fsOps.ensureDir(project, ['Assets','Scenes']);
+  await fsOps.ensureDir(project, ['Assets','Fonts']);
+  await fsOps.ensureDir(project, ['Assets','UI']);
+  await fsOps.ensureDir(project, ['Assets','Prefabs']);
+  await fsOps.ensureDir(project, ['Packages']);
+  await fsOps.ensureDir(project, ['Scripts']);
+
+  await refreshTree();
+  renderBreadcrumb();
+  await renderGrid();
 
   setTimeout(() => {
     editorLoading.style.display = 'none';
