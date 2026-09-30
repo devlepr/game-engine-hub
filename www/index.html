@@ -8,18 +8,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #000000;
-    --sidebar: #0D0D0D;
-    --panel: #0A0A0A;
-    --surface-2: #161616;
-    --row-hover: #161616;
-    --border: #232323;
-    --text: #F2F2F2;
-    --text-muted: #8A8A8A;
-    --text-dim: #5C5C5C;
-    --btn-fill: #F2F2F2;
-    --btn-fill-text: #0A0A0A;
-    --danger: #C77268;
+    --bg: #1C1D1F;
+    --sidebar: #202124;
+    --panel: #191A1C;
+    --surface-2: #2A2B2F;
+    --row-hover: #28292C;
+    --border: #303136;
+    --text: #E9E9EA;
+    --text-muted: #9A9B9F;
+    --text-dim: #6B6C70;
+    --btn-fill: #E9E9EA;
+    --btn-fill-text: #1A1B1D;
+    --danger: #D07A6C;
+    --accent: #3E7CB1;
+    --accent-soft: rgba(62,124,177,0.22);
+    --accent-text: #FFFFFF;
   }
   *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
   html,body{ height:100%; }
@@ -323,7 +326,7 @@
     color: var(--text); padding: 9px 11px; border-radius:8px;
     font-family:'Tajawal', sans-serif; font-size:13.5px; outline:none;
   }
-  .np-field input:focus{ border-color:#555; }
+  .np-field input:focus{ border-color: var(--accent); }
   .np-path-row{ display:flex; gap:8px; }
   .np-path-row input{ flex:1; }
   .np-browse{
@@ -477,8 +480,13 @@
   .ed-fs-row2{ display:flex; align-items:center; gap:8px; padding:7px 10px; border-bottom:1px solid var(--border); flex-shrink:0; }
   .ed-fs-search{
     flex:1; display:flex; align-items:center; gap:6px;
-    background: var(--panel); border:1px solid var(--border); border-radius:8px;
-    padding:6px 10px; min-width:0;
+    background: var(--panel); border:1px solid var(--border); border-radius:6px;
+    padding:5px 9px; min-width:0;
+  }
+  .ed-fs-search:focus-within{ border-color: var(--accent); }
+  .ed-fs-count{
+    font-size:11px; color: var(--text-dim); background: var(--panel);
+    border:1px solid var(--border); border-radius:6px; padding:5px 8px; flex-shrink:0;
   }
   .ed-fs-search svg{ width:13px; height:13px; color:var(--text-dim); flex-shrink:0; }
   .ed-fs-search input{
@@ -515,10 +523,10 @@
     background: var(--panel); border:1px solid var(--border);
     display:flex; align-items:center; justify-content:center; font-size:11px; color:transparent;
   }
-  .ed-file-item.selected{ background: var(--row-hover); }
+  .ed-file-item.selected{ background: var(--accent-soft); outline:1px solid var(--accent); outline-offset:-1px; }
   .ed-file-item.drag-over{ outline:2px dashed #888; outline-offset:-2px; background: var(--row-hover); }
   .ed-tree-row.drag-over{ background: var(--row-hover); outline:1px dashed #888; outline-offset:-1px; }
-  .ed-file-item.selected .ed-file-check{ background:#fff; border-color:#fff; color:#000; }
+  .ed-file-item.selected .ed-file-check{ background:var(--accent); border-color:var(--accent); color:#fff; }
 
   /* --- tree + grid layout --- */
   .ed-fs-main{ flex:1; min-height:0; display:flex; position:relative; }
@@ -528,35 +536,37 @@
   }
   .ed-fs-tree-backdrop{ display:none; }
   .ed-tree-row{
-    display:flex; align-items:center; gap:5px; padding:6px 6px; border-radius:6px;
-    font-size:12.5px; color: var(--text-muted); cursor:pointer; white-space:nowrap;
+    display:flex; align-items:center; gap:5px; padding:4px 6px; border-radius:5px;
+    font-size:12px; color: var(--text-muted); cursor:pointer; white-space:nowrap;
   }
   .ed-tree-row:hover{ background: var(--row-hover); }
-  .ed-tree-row.active{ background: var(--row-hover); color: var(--text); font-weight:700; }
+  .ed-tree-row.active{ background: var(--accent); color: var(--accent-text); font-weight:700; }
+  .ed-tree-row.active .ed-tree-arrow{ color: var(--accent-text); opacity:.8; }
   .ed-tree-arrow{ width:12px; flex-shrink:0; display:inline-block; transition: transform .1s ease; color: var(--text-dim); font-size:9px; }
   .ed-tree-arrow.open{ transform: rotate(90deg); }
   .ed-tree-arrow.hidden{ visibility:hidden; }
 
   .ed-fs-grid{
-    flex:1; overflow-y:auto; padding: 10px;
-    display:grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap:10px;
+    flex:1; overflow-y:auto; padding: 12px;
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap:4px 6px;
     align-content:start;
   }
   .ed-file-item{
-    display:flex; flex-direction:column; align-items:center; gap:6px;
-    padding:8px 4px; border-radius:8px; cursor:pointer; position:relative;
+    display:flex; flex-direction:column; align-items:center; gap:5px;
+    padding:8px 4px; border-radius:6px; cursor:pointer; position:relative;
   }
   .ed-file-item:hover{ background: var(--row-hover); }
   .ed-file-item.cut{ opacity:.45; }
   .ed-file-icon{
-    width:38px; height:38px; border-radius:6px;
-    background: var(--surface-2); border:1px solid var(--border);
+    width:44px; height:44px; border-radius:4px;
+    background:transparent; border:none;
     display:flex; align-items:center; justify-content:center; color:var(--text-muted);
     overflow:hidden;
   }
-  .ed-file-icon svg{ width:18px; height:18px; }
-  .ed-file-icon img{ width:100%; height:100%; object-fit:cover; }
-  .ed-file-name{ font-size:11px; color:var(--text-muted); text-align:center; word-break:break-word; max-width:100%; }
+  .ed-file-icon svg{ width:34px; height:34px; }
+  .ed-icon-tile{ width:34px; height:34px; border-radius:7px; display:flex; align-items:center; justify-content:center; }
+  .ed-file-icon img{ width:100%; height:100%; object-fit:cover; border-radius:4px; }
+  .ed-file-name{ font-size:10.5px; color:var(--text-muted); text-align:center; word-break:break-word; max-width:100%; line-height:1.3; }
   .ed-file-empty{ grid-column:1/-1; text-align:center; color: var(--text-dim); font-size:12.5px; padding:24px; }
 
   /* --- bottom sheet (add menu) --- */
@@ -635,7 +645,8 @@
     width:100%; height:110px; background: var(--panel); border-radius:8px;
     display:flex; align-items:center; justify-content:center; color: var(--text-dim); margin-bottom:12px;
   }
-  .ed-pv-audio-icon svg{ width:40px; height:40px; }
+  .ed-pv-audio-icon .ed-icon-tile{ width:64px; height:64px; border-radius:14px; }
+  .ed-pv-audio-icon svg{ width:30px; height:30px; }
   .ed-pv-controls{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
   .ed-pv-play-btn{
     width:42px; height:42px; border-radius:50%; background: var(--btn-fill); color: var(--btn-fill-text);
@@ -1168,10 +1179,23 @@ function kindOf(name){
   if(['ogg','wav','mp3','m4a'].includes(ext)) return 'audio';
   if(['ttf','otf','woff','woff2'].includes(ext)) return 'font';
   if(['js','gd','cs','py','ts'].includes(ext)) return 'script';
-  if(['scene'].includes(ext)) return 'scene';
+  if(['scene','scn'].includes(ext)) return 'scene';
   if(['zip','rar','7z'].includes(ext)) return 'archive';
   if(['txt','md','json'].includes(ext)) return 'text';
   return 'unknown';
+}
+/* نوع أدق لاختيار الأيقونة المناسبة فقط (بدون التأثير على الفلترة) */
+function visualKindOf(name){
+  const ext = extOf(name);
+  if(['fbx','obj','gltf','glb'].includes(ext)) return 'mesh';
+  if(['mat'].includes(ext)) return 'material';
+  if(['mp4','mov','webm'].includes(ext)) return 'video';
+  if(['json'].includes(ext)) return 'config-json';
+  if(['xml','yaml','yml','ini','cfg'].includes(ext)) return 'config-xml';
+  if(['asset','dat','bin'].includes(ext)) return 'data';
+  if(ext === 'js' || ext === 'ts') return 'script-js';
+  if(ext === 'cs') return 'script-cs';
+  return kindOf(name);
 }
 function isTextKind(kind){ return ['script','scene','text'].includes(kind); }
 function mimeFor(name){
@@ -1179,19 +1203,40 @@ function mimeFor(name){
   return { png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', gif:'image/gif', webp:'image/webp', bmp:'image/bmp' }[ext] || 'application/octet-stream';
 }
 function iconSvgFor(kind){
-  const map = {
-    folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/>',
-    audio:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
-    font:'<text x="3" y="18" font-size="15" fill="currentColor" stroke="none" font-family="sans-serif">Aa</text>',
-    script:'<path d="M8 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M9.5 13l-2 2 2 2M14.5 13l2 2-2 2"/>',
-    scene:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>',
-    text:'<path d="M8 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h5"/>',
-    archive:'<path d="M21 8H3v13h18z"/><path d="M3 8l2-5h14l2 5"/><path d="M10 12h4"/>',
-    unknown:'<path d="M6 3h9l3 3v15H6z"/><path d="M15 3v3h3"/>'
+  // أنواع بخلفية ملوّنة (Tile) زي أدوات المحركات الاحترافية
+  const tiles = {
+    audio: { bg:'#B0453E', svg:'<path d="M9 18V5l12-2v13" stroke="#fff" fill="none" stroke-width="2"/><circle cx="6" cy="18" r="3" fill="#fff"/><circle cx="18" cy="16" r="3" fill="#fff"/>' },
+    video: { bg:'#2B2C30', svg:'<rect x="3" y="5" width="18" height="14" rx="2" stroke="#fff" fill="none" stroke-width="1.6"/><path d="M10 9l6 3-6 3z" fill="#fff"/>' },
+    archive: { bg:'#C98A3E', svg:'<path d="M4 8h16v12H4z" stroke="#fff" fill="none" stroke-width="1.6"/><path d="M4 8l2-4h12l2 4" stroke="#fff" fill="none" stroke-width="1.6"/><path d="M11 12v6" stroke="#fff" stroke-width="1.6"/>' },
+    'script-js': { bg:'#F0DB4F', text:'JS', textColor:'#3A3600' },
+    'script-cs': { bg:'#9B6FD6', text:'C#', textColor:'#fff' },
   };
-  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">${map[kind]||map.unknown}</svg>`;
-}
+  if(tiles[kind]){
+    const t = tiles[kind];
+    const inner = t.text
+      ? `<text x="50%" y="56%" text-anchor="middle" font-size="13" font-weight="700" font-family="sans-serif" fill="${t.textColor}">${t.text}</text>`
+      : t.svg;
+    return `<div class="ed-icon-tile" style="background:${t.bg};"><svg viewBox="0 0 24 24" width="19" height="19">${inner}</svg></div>`;
+  }
 
+  // أيقونات مسطّحة (بدون خلفية) بلون مناسب لنوعها
+  const flat = {
+    folder: { color:'#D9D9DC', svg:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" fill="currentColor"/>' },
+    image: { color:'var(--text-muted)', svg:'<rect x="3" y="4" width="18" height="16" rx="1.5" stroke="currentColor" fill="none" stroke-width="1.6"/><circle cx="8.5" cy="9.5" r="1.6" stroke="currentColor" fill="none" stroke-width="1.6"/><path d="M4 17l5-5 4 4 3-3 4 4" stroke="currentColor" fill="none" stroke-width="1.6"/>' },
+    material: { color:'#7E93D6', svg:'<circle cx="12" cy="12" r="9" fill="#5C6FC2"/><path d="M8 7a8 8 0 0 0 9 9" stroke="#9FB0EA" stroke-width="1.6" fill="none"/>' },
+    mesh: { color:'#5FC9D6', svg:'<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z" stroke="#5FC9D6" fill="none" stroke-width="1.6"/><path d="M12 3v18M4 7.5l8 4.5 8-4.5" stroke="#5FC9D6" stroke-width="1.3" fill="none"/>' },
+    font: { color:'var(--text-muted)', svg:'<text x="2" y="18" font-size="16" fill="currentColor" stroke="none" font-family="sans-serif">Aa</text>' },
+    script: { color:'#8FCB7E', svg:'<path d="M8 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" stroke="currentColor" fill="none" stroke-width="1.6"/><path d="M14 3v6h6" stroke="currentColor" fill="none" stroke-width="1.6"/><path d="M9.5 13l-2 2 2 2M14.5 13l2 2-2 2" stroke="currentColor" fill="none" stroke-width="1.6"/>' },
+    scene: { color:'var(--text-muted)', svg:'<path d="M3 7l9-4 9 4-9 4z" stroke="currentColor" fill="none" stroke-width="1.6"/><path d="M3 7v10l9 4 9-4V7" stroke="currentColor" fill="none" stroke-width="1.6"/><path d="M3 7l9 4 9-4" stroke="currentColor" fill="none" stroke-width="1.6"/>' },
+    'config-json': { color:'var(--text-muted)', svg:'<path d="M9 4c-2 0-3 1-3 3v3c0 1-.5 2-2 2 1.5 0 2 1 2 2v3c0 2 1 3 3 3M15 4c2 0 3 1 3 3v3c0 1 .5 2 2 2-1.5 0-2 1-2 2v3c0 2-1 3-3 3" stroke="currentColor" fill="none" stroke-width="1.5"/>' },
+    'config-xml': { color:'#C98A3E', svg:'<path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13 6l-2 12" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linecap="round"/>' },
+    data: { color:'var(--text-muted)', svg:'<ellipse cx="12" cy="6" rx="8" ry="3" stroke="currentColor" fill="none" stroke-width="1.6"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6" stroke="currentColor" fill="none" stroke-width="1.6"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" stroke="currentColor" fill="none" stroke-width="1.6"/>' },
+    text: { color:'var(--text-muted)', svg:'<path d="M8 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" stroke="currentColor" fill="none" stroke-width="1.6"/><path d="M14 3v6h6" stroke="currentColor" fill="none" stroke-width="1.6"/><path d="M8 13h8M8 17h5" stroke="currentColor" stroke-width="1.6"/>' },
+    unknown: { color:'var(--text-dim)', svg:'<path d="M6 3h9l3 3v15H6z" stroke="currentColor" fill="none" stroke-width="1.6"/><path d="M15 3v3h3" stroke="currentColor" fill="none" stroke-width="1.6"/>' },
+  };
+  const f = flat[kind] || flat.unknown;
+  return `<svg viewBox="0 0 24 24" style="color:${f.color}">${f.svg}</svg>`;
+}
 /* --- عمليات نظام الملفات: نسخة حقيقية (Capacitor Filesystem) --- */
 const nativeFS = {
   _rel(pathArr, name){ return name ? [...pathArr, name].join('/') : pathArr.join('/'); },
@@ -1506,7 +1551,7 @@ function rowHtml(r){
   return `
     <div class="ed-file-item ${cutClass} ${isSel?'selected':''}" data-kind="${r.kind}" data-name="${esc(r.name)}" data-isdir="${r.isDir?1:0}">
       ${selectMode ? `<div class="ed-file-check">${isSel?'✓':''}</div>` : ''}
-      <div class="ed-file-icon" ${!r.isDir ? `data-thumb="${esc(r.name)}"` : ''}>${iconSvgFor(r.kind)}</div>
+      <div class="ed-file-icon" ${!r.isDir ? `data-thumb="${esc(r.name)}"` : ''}>${iconSvgFor(r.isDir ? 'folder' : visualKindOf(r.name))}</div>
       <div class="ed-file-name">${esc(r.name)}</div>
     </div>
   `;
@@ -1609,7 +1654,6 @@ function appendNextBatch(){
 
 async function renderGrid(){
   updatePasteBtn();
-  renderRow2();
   const { folders, files: fileList } = await fsOps.list(currentProject, currentPath);
   currentGridFiles = fileList;
 
@@ -1638,6 +1682,7 @@ async function renderGrid(){
   fileRows.sort((a,b) => dir * cmp(a,b));
 
   gridRows = [...folderRows, ...fileRows];
+  renderRow2();
   renderedCount = 0;
   edFileGrid.innerHTML = '';
   if(thumbObserver) thumbObserver.disconnect();
@@ -1660,6 +1705,12 @@ async function refreshCurrentView(){
 /* --- الصف الثاني: بحث / فلترة / ترتيب / تحديد --- */
 function renderRow2(){
   const row = document.getElementById('edFsRow2');
+  const searchFocused = document.activeElement && document.activeElement.id === 'edSearchInput';
+  if(searchFocused && !selectMode){
+    const badge = document.getElementById('edFsCount');
+    if(badge) badge.textContent = gridRows.length;
+    return; // ما نبنيش الصف تاني عشان منضيّعش التركيز من خانة البحث وهو بيكتب
+  }
   if(selectMode){
     const n = selectedItems.size;
     row.innerHTML = `
@@ -1688,6 +1739,7 @@ function renderRow2(){
     <button class="ed-fs-row2-btn ${activeFilter!=='all'?'filtered':''}" id="edFilterBtn" title="فلترة">▤<span class="dot"></span></button>
     <button class="ed-fs-row2-btn" id="edSortBtn" title="ترتيب">⇅</button>
     <button class="ed-fs-row2-btn" id="edSelectToggleBtn" title="تحديد">☑</button>
+    <span class="ed-fs-count" id="edFsCount">${gridRows.length}</span>
   `;
   const input = document.getElementById('edSearchInput');
   let debounceT = null;
