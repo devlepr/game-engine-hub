@@ -473,6 +473,53 @@
   .ed-crumb-sep{ color: var(--text-dim); }
   .ed-fs-spacer{ flex:0; }
 
+  /* --- row 2: بحث / فلترة / ترتيب / تحديد --- */
+  .ed-fs-row2{ display:flex; align-items:center; gap:8px; padding:7px 10px; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .ed-fs-search{
+    flex:1; display:flex; align-items:center; gap:6px;
+    background: var(--panel); border:1px solid var(--border); border-radius:8px;
+    padding:6px 10px; min-width:0;
+  }
+  .ed-fs-search svg{ width:13px; height:13px; color:var(--text-dim); flex-shrink:0; }
+  .ed-fs-search input{
+    flex:1; min-width:0; background:transparent; border:none; outline:none; color:var(--text);
+    font-size:12.5px; font-family:'Tajawal',sans-serif;
+  }
+  .ed-fs-search input::placeholder{ color:var(--text-dim); }
+  .ed-fs-row2-btn{
+    background: var(--panel); border:1px solid var(--border); color:var(--text-muted);
+    width:30px; height:30px; border-radius:8px; font-size:13px; cursor:pointer; flex-shrink:0; position:relative;
+  }
+  .ed-fs-row2-btn:hover{ color:var(--text); }
+  .ed-fs-row2-btn.active{ color:var(--text); border-color:#4a4a4a; background:var(--row-hover); }
+  .ed-fs-row2-btn .dot{
+    position:absolute; top:-2px; left:-2px; width:7px; height:7px; border-radius:50%;
+    background:var(--text); display:none;
+  }
+  .ed-fs-row2-btn.filtered .dot{ display:block; }
+
+  .ed-fs-selectbar{ display:flex; align-items:center; gap:8px; flex:1; }
+  .ed-fs-select-count{ font-size:12.5px; color:var(--text-muted); flex-shrink:0; }
+  .ed-fs-select-spacer{ flex:1; }
+  .ed-fs-select-actions{ display:flex; gap:6px; }
+  .ed-fs-select-actions button{
+    background: var(--panel); border:1px solid var(--border); color:var(--text);
+    padding:6px 11px; border-radius:7px; font-size:12px; cursor:pointer;
+  }
+  .ed-fs-select-actions button:hover{ background: var(--row-hover); }
+  .ed-fs-select-actions button.danger{ color: var(--danger); }
+  .ed-fs-select-actions button:disabled{ opacity:.35; pointer-events:none; }
+
+  .ed-file-check{
+    position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:5px;
+    background: var(--panel); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; font-size:11px; color:transparent;
+  }
+  .ed-file-item.selected{ background: var(--row-hover); }
+  .ed-file-item.drag-over{ outline:2px dashed #888; outline-offset:-2px; background: var(--row-hover); }
+  .ed-tree-row.drag-over{ background: var(--row-hover); outline:1px dashed #888; outline-offset:-1px; }
+  .ed-file-item.selected .ed-file-check{ background:#fff; border-color:#fff; color:#000; }
+
   /* --- tree + grid layout --- */
   .ed-fs-main{ flex:1; min-height:0; display:flex; position:relative; }
   .ed-fs-tree{
@@ -756,9 +803,11 @@
             <button class="ed-fs-icon-btn" id="edTreeToggle" title="شجرة المشروع">☰</button>
             <div class="ed-breadcrumb" id="edBreadcrumb"></div>
             <div class="ed-fs-spacer"></div>
+            <button class="ed-fs-icon-btn" id="edRefreshBtn" title="تحديث">↻</button>
             <button class="btn btn-outline" id="edPasteBtn" style="display:none;">لصق</button>
             <button class="btn btn-fill" id="edAddBtn">+ إضافة</button>
           </div>
+          <div class="ed-fs-row2" id="edFsRow2"></div>
           <div class="ed-fs-main">
             <div class="ed-fs-tree-backdrop" id="edTreeBackdrop"></div>
             <div class="ed-fs-tree" id="edTree"></div>
@@ -1347,14 +1396,32 @@ function renderTree(){
     });
   });
   edTree.querySelectorAll('.ed-tree-row').forEach(el => {
+    const key = el.dataset.path;
     el.addEventListener('click', () => {
-      const key = el.dataset.path;
       currentPath = key ? key.split('/') : [];
       expandedPaths.add(key);
+      resetViewState();
       renderTree();
       renderBreadcrumb();
       renderGrid();
       closeTreeDrawer();
+    });
+    el.addEventListener('dragover', (e) => {
+      if(!dragPayload || pathKey(dragPayload.path) === key) return;
+      e.preventDefault();
+      el.classList.add('drag-over');
+    });
+    el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+    el.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      el.classList.remove('drag-over');
+      if(!dragPayload) return;
+      try{
+        await fsOps.move(currentProject, dragPayload.path, dragPayload.name, key ? key.split('/') : []);
+        showToast('تم النقل');
+        await refreshTree(); await renderGrid();
+      }catch(err){ showToast('تعذّر نقل العنصر'); }
+      dragPayload = null;
     });
   });
 }
@@ -1374,6 +1441,7 @@ function renderBreadcrumb(){
     el.addEventListener('click', () => {
       const key = el.dataset.path;
       currentPath = key ? key.split('/') : [];
+      resetViewState();
       renderBreadcrumb();
       renderGrid();
     });
@@ -1383,63 +1451,281 @@ function renderBreadcrumb(){
 function toggleTreeDrawer(){ edTree.classList.toggle('open'); edTreeBackdrop.classList.toggle('open'); }
 function closeTreeDrawer(){ edTree.classList.remove('open'); edTreeBackdrop.classList.remove('open'); }
 document.getElementById('edTreeToggle').addEventListener('click', toggleTreeDrawer);
+document.getElementById('edRefreshBtn').addEventListener('click', refreshCurrentView);
 edTreeBackdrop.addEventListener('click', closeTreeDrawer);
 
 /* --- شبكة الملفات --- */
 let currentGridFiles = [];
+let searchQuery = '';
+let activeFilter = 'all';   // all/image/audio/font/script/scene/text/archive/unknown
+let sortField = 'name';     // name/type/size/date
+let sortDir = 'asc';        // asc/desc
+let selectMode = false;
+let selectedItems = new Map(); // name -> isDir
+
+const FILTER_OPTIONS = [
+  { key:'all', label:'الكل' },
+  { key:'image', label:'صور' },
+  { key:'audio', label:'صوت' },
+  { key:'font', label:'خطوط' },
+  { key:'script', label:'سكريبتات' },
+  { key:'scene', label:'مشاهد' },
+  { key:'other', label:'أخرى' },
+];
+const SORT_OPTIONS = [
+  { key:'name', label:'الاسم' },
+  { key:'type', label:'النوع' },
+  { key:'size', label:'الحجم' },
+  { key:'date', label:'تاريخ التعديل' },
+];
+
+function resetViewState(){
+  searchQuery = '';
+  selectMode = false;
+  selectedItems.clear();
+}
+
+function isCutItem(name){
+  return !!(clipboard && clipboard.mode === 'cut' && pathKey(clipboard.path) === pathKey(currentPath) && clipboard.items.some(it => it.name === name));
+}
+
+/* --- تخزين مؤقت للصور المصغّرة + عرض تدريجي لدعم آلاف الملفات --- */
+const thumbCache = new Map();
+let gridRows = [];
+let renderedCount = 0;
+const RENDER_BATCH = 60;
+let thumbObserver = null;
+let sentinelObserver = null;
+let dragPayload = null; // { path, name, isDir } للسحب والإفلات على الكمبيوتر
+
+function thumbKey(name){ return currentProject.id + ':' + pathKey(currentPath) + '/' + name; }
+
+function rowHtml(r){
+  const isSel = selectedItems.has(r.name);
+  const cutClass = !r.isDir && isCutItem(r.name) ? 'cut' : '';
+  return `
+    <div class="ed-file-item ${cutClass} ${isSel?'selected':''}" data-kind="${r.kind}" data-name="${esc(r.name)}" data-isdir="${r.isDir?1:0}">
+      ${selectMode ? `<div class="ed-file-check">${isSel?'✓':''}</div>` : ''}
+      <div class="ed-file-icon" ${!r.isDir ? `data-thumb="${esc(r.name)}"` : ''}>${iconSvgFor(r.kind)}</div>
+      <div class="ed-file-name">${esc(r.name)}</div>
+    </div>
+  `;
+}
+
+function bindItemEvents(el){
+  const name = el.dataset.name;
+  const isDir = el.dataset.isdir === '1';
+  el.addEventListener('click', (e) => {
+    if(selectMode || e.ctrlKey || e.metaKey){ toggleSelect(name, isDir); return; }
+    if(isDir){
+      currentPath = [...currentPath, name];
+      expandedPaths.add(pathKey(currentPath));
+      resetViewState();
+      renderTree(); renderBreadcrumb(); renderGrid();
+    }else{
+      openPreview(name, el.dataset.kind);
+    }
+  });
+  attachLongPress(el, (x, y) => {
+    if(!selectMode){ enterSelectMode(); toggleSelect(name, isDir); }
+    else openContextMenu(x, y, name, isDir);
+  });
+  el.addEventListener('contextmenu', (e) => { e.preventDefault(); openContextMenu(e.clientX, e.clientY, name, isDir); });
+
+  // سحب وإفلات (كمبيوتر)
+  el.draggable = true;
+  el.addEventListener('dragstart', (e) => {
+    dragPayload = { path:[...currentPath], name, isDir };
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  el.addEventListener('dragend', () => { dragPayload = null; edFileGrid.querySelectorAll('.drag-over').forEach(x=>x.classList.remove('drag-over')); });
+  if(isDir){
+    el.addEventListener('dragover', (e) => {
+      if(!dragPayload || dragPayload.name === name && pathKey(dragPayload.path)===pathKey(currentPath)) return;
+      e.preventDefault();
+      el.classList.add('drag-over');
+    });
+    el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+    el.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      el.classList.remove('drag-over');
+      if(!dragPayload) return;
+      try{
+        await fsOps.move(currentProject, dragPayload.path, dragPayload.name, [...currentPath, name]);
+        showToast('تم النقل');
+        await refreshTree(); await renderGrid();
+      }catch(err){ showToast('تعذّر نقل العنصر'); }
+      dragPayload = null;
+    });
+  }
+}
+
+function onThumbIntersect(entries, obs){
+  entries.forEach(async (entry) => {
+    if(!entry.isIntersecting) return;
+    const el = entry.target;
+    obs.unobserve(el);
+    const name = el.dataset.thumb;
+    const key = thumbKey(name);
+    if(thumbCache.has(key)){ el.innerHTML = `<img src="${thumbCache.get(key)}">`; return; }
+    try{
+      const b64 = await fsOps.readFile(currentProject, currentPath, name);
+      if(b64){
+        const uri = `data:${mimeFor(name)};base64,${b64}`;
+        thumbCache.set(key, uri);
+        el.innerHTML = `<img src="${uri}">`;
+      }
+    }catch(e){}
+  });
+}
+
+function appendNextBatch(){
+  const slice = gridRows.slice(renderedCount, renderedCount + RENDER_BATCH);
+  if(sentinelObserver){ sentinelObserver.disconnect(); }
+  const oldSentinel = edFileGrid.querySelector('.ed-fs-sentinel');
+  if(oldSentinel) oldSentinel.remove();
+  if(slice.length === 0) return;
+
+  edFileGrid.insertAdjacentHTML('beforeend', slice.map(rowHtml).join(''));
+  const items = [...edFileGrid.querySelectorAll('.ed-file-item')].slice(renderedCount);
+  items.forEach(el => {
+    bindItemEvents(el);
+    if(el.dataset.kind === 'image'){
+      const icon = el.querySelector('[data-thumb]');
+      if(icon) thumbObserver.observe(icon);
+    }
+  });
+  renderedCount += slice.length;
+
+  if(renderedCount < gridRows.length){
+    edFileGrid.insertAdjacentHTML('beforeend', '<div class="ed-fs-sentinel" style="grid-column:1/-1;height:1px;"></div>');
+    const sentinel = edFileGrid.querySelector('.ed-fs-sentinel');
+    sentinelObserver = new IntersectionObserver((es) => {
+      if(es.some(e => e.isIntersecting)) appendNextBatch();
+    }, { root: edFileGrid, rootMargin:'400px' });
+    sentinelObserver.observe(sentinel);
+  }
+}
 
 async function renderGrid(){
   updatePasteBtn();
+  renderRow2();
   const { folders, files: fileList } = await fsOps.list(currentProject, currentPath);
   currentGridFiles = fileList;
-  if(folders.length === 0 && fileList.length === 0){
-    edFileGrid.innerHTML = `<div class="ed-file-empty">المجلد فاضي</div>`;
+
+  let folderRows = folders.map(f => ({ name:f.name, isDir:true, kind:'folder', size:0, mtime:0 }));
+  let fileRows = fileList.map(f => ({ name:f.name, isDir:false, kind:kindOf(f.name), size:f.size||0, mtime:f.mtime||0 }));
+
+  if(searchQuery){
+    const q = searchQuery.toLowerCase();
+    folderRows = folderRows.filter(r => r.name.toLowerCase().includes(q));
+    fileRows = fileRows.filter(r => r.name.toLowerCase().includes(q));
+  }
+  if(activeFilter !== 'all'){
+    fileRows = fileRows.filter(r => activeFilter === 'other'
+      ? !['image','audio','font','script','scene'].includes(r.kind)
+      : r.kind === activeFilter);
+  }
+
+  const dir = sortDir === 'asc' ? 1 : -1;
+  const cmp = {
+    name: (a,b) => a.name.localeCompare(b.name),
+    type: (a,b) => a.kind.localeCompare(b.kind) || a.name.localeCompare(b.name),
+    size: (a,b) => (a.size - b.size) || a.name.localeCompare(b.name),
+    date: (a,b) => (a.mtime - b.mtime) || a.name.localeCompare(b.name),
+  }[sortField];
+  folderRows.sort((a,b) => dir * cmp(a,b));
+  fileRows.sort((a,b) => dir * cmp(a,b));
+
+  gridRows = [...folderRows, ...fileRows];
+  renderedCount = 0;
+  edFileGrid.innerHTML = '';
+  if(thumbObserver) thumbObserver.disconnect();
+  thumbObserver = new IntersectionObserver(onThumbIntersect, { root: edFileGrid, rootMargin:'250px' });
+
+  if(gridRows.length === 0){
+    edFileGrid.innerHTML = `<div class="ed-file-empty">${searchQuery || activeFilter!=='all' ? 'مفيش نتائج' : 'المجلد فاضي'}</div>`;
     return;
   }
-  const folderHtml = folders.map(f => `
-    <div class="ed-file-item" data-kind="folder" data-name="${esc(f.name)}" data-isdir="1">
-      <div class="ed-file-icon">${iconSvgFor('folder')}</div>
-      <div class="ed-file-name">${esc(f.name)}</div>
-    </div>
-  `).join('');
-  const fileHtml = fileList.map(f => {
-    const kind = kindOf(f.name);
-    const cutClass = (clipboard && clipboard.mode==='cut' && clipboard.name===f.name && pathKey(clipboard.path)===pathKey(currentPath)) ? 'cut' : '';
-    return `
-      <div class="ed-file-item ${cutClass}" data-kind="${kind}" data-name="${esc(f.name)}" data-isdir="0">
-        <div class="ed-file-icon" data-thumb="${esc(f.name)}">${iconSvgFor(kind)}</div>
-        <div class="ed-file-name">${esc(f.name)}</div>
+  appendNextBatch();
+}
+
+async function refreshCurrentView(){
+  thumbCache.clear();
+  await refreshTree();
+  await renderGrid();
+  showToast('تم التحديث');
+}
+
+/* --- الصف الثاني: بحث / فلترة / ترتيب / تحديد --- */
+function renderRow2(){
+  const row = document.getElementById('edFsRow2');
+  if(selectMode){
+    const n = selectedItems.size;
+    row.innerHTML = `
+      <div class="ed-fs-selectbar">
+        <span class="ed-fs-select-count">${n} محدد</span>
+        <span class="ed-fs-select-spacer"></span>
+        <div class="ed-fs-select-actions">
+          <button id="edSelCopy" ${n?'':'disabled'}>نسخ</button>
+          <button id="edSelCut" ${n?'':'disabled'}>قص</button>
+          <button class="danger" id="edSelDelete" ${n?'':'disabled'}>حذف</button>
+          <button id="edSelCancel">إلغاء</button>
+        </div>
       </div>
     `;
-  }).join('');
-  edFileGrid.innerHTML = folderHtml + fileHtml;
-
-  edFileGrid.querySelectorAll('.ed-file-item').forEach(el => {
-    const name = el.dataset.name;
-    const isDir = el.dataset.isdir === '1';
-    el.addEventListener('click', () => {
-      if(isDir){
-        currentPath = [...currentPath, name];
-        expandedPaths.add(pathKey(currentPath));
-        renderTree(); renderBreadcrumb(); renderGrid();
-      }else{
-        openPreview(name, el.dataset.kind);
-      }
-    });
-    attachLongPress(el, (x, y) => openContextMenu(x, y, name, isDir));
-    el.addEventListener('contextmenu', (e) => { e.preventDefault(); openContextMenu(e.clientX, e.clientY, name, isDir); });
-  });
-
-  // ثمبنيلز الصور
-  for(const f of fileList){
-    if(kindOf(f.name) !== 'image') continue;
-    const holder = edFileGrid.querySelector(`[data-thumb="${CSS.escape(f.name)}"]`);
-    if(!holder) continue;
-    try{
-      const b64 = await fsOps.readFile(currentProject, currentPath, f.name);
-      if(b64) holder.innerHTML = `<img src="data:${mimeFor(f.name)};base64,${b64}">`;
-    }catch(e){}
+    document.getElementById('edSelCopy').addEventListener('click', () => bulkClipboard('copy'));
+    document.getElementById('edSelCut').addEventListener('click', () => bulkClipboard('cut'));
+    document.getElementById('edSelDelete').addEventListener('click', bulkDelete);
+    document.getElementById('edSelCancel').addEventListener('click', () => { resetViewState(); renderGrid(); });
+    return;
   }
+  row.innerHTML = `
+    <div class="ed-fs-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+      <input type="text" id="edSearchInput" placeholder="بحث في الملفات..." value="${esc(searchQuery)}">
+    </div>
+    <button class="ed-fs-row2-btn ${activeFilter!=='all'?'filtered':''}" id="edFilterBtn" title="فلترة">▤<span class="dot"></span></button>
+    <button class="ed-fs-row2-btn" id="edSortBtn" title="ترتيب">⇅</button>
+    <button class="ed-fs-row2-btn" id="edSelectToggleBtn" title="تحديد">☑</button>
+  `;
+  const input = document.getElementById('edSearchInput');
+  let debounceT = null;
+  input.addEventListener('input', () => {
+    clearTimeout(debounceT);
+    debounceT = setTimeout(() => { searchQuery = input.value; renderGrid(); }, 250);
+  });
+  document.getElementById('edFilterBtn').addEventListener('click', (e) => openFilterMenu(e));
+  document.getElementById('edSortBtn').addEventListener('click', (e) => openSortMenu(e));
+  document.getElementById('edSelectToggleBtn').addEventListener('click', () => { enterSelectMode(); renderGrid(); });
+}
+
+function enterSelectMode(){ selectMode = true; }
+function toggleSelect(name, isDir){
+  if(selectedItems.has(name)) selectedItems.delete(name);
+  else selectedItems.set(name, isDir);
+  renderGrid();
+}
+
+async function bulkClipboard(mode){
+  const items = [...selectedItems.entries()].map(([name,isDir]) => ({ name, isDir }));
+  if(!items.length) return;
+  clipboard = { path:[...currentPath], items, mode };
+  showToast(mode==='copy' ? 'تم النسخ إلى الحافظة' : 'تم القص، الصقه في المكان المطلوب');
+  resetViewState();
+  renderGrid();
+}
+async function bulkDelete(){
+  const items = [...selectedItems.entries()].map(([name,isDir]) => ({ name, isDir }));
+  if(!items.length) return;
+  if(!confirm(`حذف ${items.length} عنصر نهائيًا؟`)) return;
+  try{
+    for(const it of items) await fsOps.remove(currentProject, currentPath, it.name, it.isDir);
+    showToast('تم الحذف');
+    if(items.some(it => it.isDir)) await refreshTree();
+    resetViewState();
+    await renderGrid();
+  }catch(e){ console.error(e); showToast('تعذّر حذف بعض العناصر'); }
 }
 
 /* --- الضغط المطول --- */
@@ -1460,35 +1746,39 @@ function attachLongPress(el, cb){
   el.addEventListener('click', (e) => { if(longPressed){ e.stopPropagation(); longPressed = false; } });
 }
 
-/* --- قائمة السياق --- */
-let ctxTarget = null;
-function openContextMenu(x, y, name, isDir){
-  ctxTarget = { name, isDir };
-  const items = [
-    { key:'rename', label:'إعادة تسمية' },
-    { key:'copy', label:'نسخ' },
-    { key:'cut', label:'قص' },
-    { key:'sep' },
-    { key:'info', label:'معلومات' },
-    { key:'sep' },
-    { key:'delete', label:'حذف', danger:true },
-  ];
-  edCtxMenu.innerHTML = items.map(it => it.key==='sep'
+/* --- قائمة منبثقة عامة (تُستخدم لقائمة السياق والفلترة والترتيب) --- */
+function openMenu(x, y, items, onPick){
+  edCtxMenu.innerHTML = items.map((it, i) => it.sep
     ? '<div class="ed-ctx-sep"></div>'
-    : `<div class="ed-ctx-item ${it.danger?'danger':''}" data-act="${it.key}">${it.label}</div>`
+    : `<div class="ed-ctx-item ${it.danger?'danger':''}" data-idx="${i}">${it.active?'✓ ':''}${it.label}</div>`
   ).join('');
   edCtxMenu.classList.add('open');
-  const menuW = 190, menuH = 210;
+  const menuW = 190, menuH = Math.min(320, items.length * 38 + 20);
   const left = Math.min(x, window.innerWidth - menuW - 10);
   const top = Math.min(y, window.innerHeight - menuH - 10);
   edCtxMenu.style.left = Math.max(8,left) + 'px';
   edCtxMenu.style.top = Math.max(8,top) + 'px';
-  edCtxMenu.querySelectorAll('[data-act]').forEach(el => {
-    el.addEventListener('click', () => { closeContextMenu(); handleCtxAction(el.dataset.act); });
+  edCtxMenu.querySelectorAll('[data-idx]').forEach(el => {
+    el.addEventListener('click', () => { closeContextMenu(); onPick(items[el.dataset.idx].key); });
   });
 }
 function closeContextMenu(){ edCtxMenu.classList.remove('open'); }
 document.addEventListener('click', (e) => { if(!edCtxMenu.contains(e.target)) closeContextMenu(); });
+
+/* --- قائمة سياق ملف/مجلد --- */
+let ctxTarget = null;
+function openContextMenu(x, y, name, isDir){
+  ctxTarget = { name, isDir };
+  openMenu(x, y, [
+    { key:'rename', label:'إعادة تسمية' },
+    { key:'copy', label:'نسخ' },
+    { key:'cut', label:'قص' },
+    { sep:true },
+    { key:'info', label:'معلومات' },
+    { sep:true },
+    { key:'delete', label:'حذف', danger:true },
+  ], handleCtxAction);
+}
 
 async function handleCtxAction(act){
   if(!ctxTarget || !currentProject) return;
@@ -1500,10 +1790,10 @@ async function handleCtxAction(act){
       await fsOps.rename(currentProject, currentPath, name, nn.trim());
       showToast('تم إعادة التسمية');
     }else if(act === 'copy'){
-      clipboard = { path:[...currentPath], name, isDir, mode:'copy' };
+      clipboard = { path:[...currentPath], items:[{name,isDir}], mode:'copy' };
       showToast('تم النسخ إلى الحافظة');
     }else if(act === 'cut'){
-      clipboard = { path:[...currentPath], name, isDir, mode:'cut' };
+      clipboard = { path:[...currentPath], items:[{name,isDir}], mode:'cut' };
       showToast('تم القص، الصقه في المكان المطلوب');
     }else if(act === 'info'){
       alert(`الاسم: ${name}\nالنوع: ${isDir ? 'مجلد' : kindOf(name)}`);
@@ -1518,14 +1808,39 @@ async function handleCtxAction(act){
   }catch(e){ console.error(e); showToast('تعذّر تنفيذ العملية'); }
 }
 
+/* --- قوائم الفلترة والترتيب --- */
+function openFilterMenu(e){
+  const r = e.currentTarget.getBoundingClientRect();
+  openMenu(r.left, r.bottom+6, FILTER_OPTIONS.map(o => ({ key:o.key, label:o.label, active: o.key===activeFilter })), (key) => {
+    activeFilter = key; renderGrid();
+  });
+}
+function openSortMenu(e){
+  const r = e.currentTarget.getBoundingClientRect();
+  const items = [
+    ...SORT_OPTIONS.map(o => ({ key:'field:'+o.key, label:o.label, active:o.key===sortField })),
+    { sep:true },
+    { key:'dir:asc', label:'تصاعدي', active: sortDir==='asc' },
+    { key:'dir:desc', label:'تنازلي', active: sortDir==='desc' },
+  ];
+  openMenu(r.left, r.bottom+6, items, (key) => {
+    if(key.startsWith('field:')) sortField = key.slice(6);
+    else sortDir = key.slice(4);
+    renderGrid();
+  });
+}
+
+/* --- اللصق --- */
 function updatePasteBtn(){
   edPasteBtn.style.display = clipboard ? '' : 'none';
 }
 edPasteBtn.addEventListener('click', async () => {
   if(!clipboard) return;
   try{
-    if(clipboard.mode === 'copy') await fsOps.copy(currentProject, clipboard.path, clipboard.name, currentPath);
-    else{ await fsOps.move(currentProject, clipboard.path, clipboard.name, currentPath); }
+    for(const it of clipboard.items){
+      if(clipboard.mode === 'copy') await fsOps.copy(currentProject, clipboard.path, it.name, currentPath);
+      else await fsOps.move(currentProject, clipboard.path, it.name, currentPath);
+    }
     showToast(clipboard.mode === 'copy' ? 'تم اللصق (نسخ)' : 'تم النقل');
     if(clipboard.mode === 'cut') clipboard = null;
     await refreshTree();
@@ -1804,6 +2119,7 @@ async function openEditor(project){
   currentProject = project;
   currentPath = [];
   clipboard = null;
+  resetViewState();
   document.getElementById('hubView').style.display = 'none';
   editorView.classList.add('open');
   editorShell.style.display = 'none';
