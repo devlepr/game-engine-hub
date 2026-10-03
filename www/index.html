@@ -658,6 +658,34 @@
   .ed-pv-font-sample{ font-size:24px; line-height:1.5; word-break:break-word; color: var(--text); margin-bottom:6px; }
   .ed-pv-font-sample.small{ font-size:14px; }
 
+  /* --- تخصيص الأيقونات --- */
+  .ed-icons-overlay{
+    position:fixed; inset:0; background: rgba(0,0,0,.8); z-index:55;
+    display:flex; align-items:center; justify-content:center; padding:16px;
+    opacity:0; pointer-events:none; transition: opacity .15s ease;
+  }
+  .ed-icons-overlay.open{ opacity:1; pointer-events:auto; }
+  .ed-icons-modal{
+    background: var(--sidebar); border:1px solid var(--border); border-radius:14px;
+    width:100%; max-width:420px; max-height:calc(100vh - 32px);
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+  .ed-icons-list{ overflow-y:auto; padding:8px 10px; }
+  .ed-icon-row{
+    display:flex; align-items:center; gap:12px; padding:9px 6px;
+    border-bottom:1px solid var(--border);
+  }
+  .ed-icon-row:last-child{ border-bottom:none; }
+  .ed-icon-row-preview{ width:34px; height:34px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .ed-icon-row-preview img{ width:100%; height:100%; object-fit:cover; border-radius:6px; }
+  .ed-icon-row-label{ flex:1; font-size:13px; color: var(--text); }
+  .ed-icon-row-actions{ display:flex; gap:6px; }
+  .ed-icon-row-actions button{
+    background: var(--panel); border:1px solid var(--border); color:var(--text-muted);
+    padding:5px 10px; border-radius:7px; font-size:11.5px; cursor:pointer;
+  }
+  .ed-icon-row-actions button:hover{ color:var(--text); }
+
   @media (max-width: 720px){
     .ed-fs-tree{
       position:absolute; inset:0 auto 0 0; z-index:12; width:75%; max-width:260px;
@@ -770,6 +798,7 @@
       <button class="ed-back" id="edBack">‹ المشاريع</button>
       <div class="ed-title" id="edTitle"></div>
       <div class="ed-controls">
+        <button class="ed-icon-btn" id="edIconSettingsBtn" title="تخصيص الأيقونات">🖼</button>
         <div class="ed-icon-btn">▶</div>
         <div class="ed-icon-btn">❚❚</div>
         <div class="ed-icon-btn">▸</div>
@@ -837,6 +866,17 @@
 </div>
 
 <div class="ed-ctx-menu" id="edCtxMenu"></div>
+
+<div class="ed-icons-overlay" id="edIconsOverlay">
+  <div class="ed-icons-modal">
+    <div class="ed-pv-head">
+      <div class="ed-pv-title">تخصيص الأيقونات</div>
+      <button class="ed-pv-close" id="edIconsClose">×</button>
+    </div>
+    <div class="ed-icons-list" id="edIconsList"></div>
+  </div>
+</div>
+<input type="file" id="edIconPickInput" accept="image/*" style="display:none">
 
 <div class="ed-preview-overlay" id="edPreviewOverlay">
   <div class="ed-preview-modal" id="edPreviewModal"></div>
@@ -1203,9 +1243,24 @@ function mimeFor(name){
   return { png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', gif:'image/gif', webp:'image/webp', bmp:'image/bmp' }[ext] || 'application/octet-stream';
 }
 function iconSvgFor(kind){
+  const custom = iconSettings[kind];
+  if(custom) return `<img src="data:${custom.mime};base64,${custom.data}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">`;
+  return iconSvgForBuiltin(kind);
+}
+/* أيقونات الملفات الحقيقية اللي المستخدم رسمها وحطها جوه www/ */
+const BUILTIN_ICON_FILES = {
+  folder: 'icônes/File Icons/Files icon.png',
+  audio: 'icônes/File Icons/Music icon.png',
+  font: 'icônes/File Icons/Fonts.png',
+  text: 'icônes/File Icons/Text icon.png',
+  video: 'icônes/File Icons/Video icon.png',
+};
+function iconSvgForBuiltin(kind){
+  if(BUILTIN_ICON_FILES[kind]){
+    return `<img src="${encodeURI(BUILTIN_ICON_FILES[kind])}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">`;
+  }
   // أنواع بخلفية ملوّنة (Tile) زي أدوات المحركات الاحترافية
   const tiles = {
-    audio: { bg:'#B0453E', svg:'<path d="M9 18V5l12-2v13" stroke="#fff" fill="none" stroke-width="2"/><circle cx="6" cy="18" r="3" fill="#fff"/><circle cx="18" cy="16" r="3" fill="#fff"/>' },
     video: { bg:'#2B2C30', svg:'<rect x="3" y="5" width="18" height="14" rx="2" stroke="#fff" fill="none" stroke-width="1.6"/><path d="M10 9l6 3-6 3z" fill="#fff"/>' },
     archive: { bg:'#C98A3E', svg:'<path d="M4 8h16v12H4z" stroke="#fff" fill="none" stroke-width="1.6"/><path d="M4 8l2-4h12l2 4" stroke="#fff" fill="none" stroke-width="1.6"/><path d="M11 12v6" stroke="#fff" stroke-width="1.6"/>' },
     'script-js': { bg:'#F0DB4F', text:'JS', textColor:'#3A3600' },
@@ -1237,6 +1292,91 @@ function iconSvgFor(kind){
   const f = flat[kind] || flat.unknown;
   return `<svg viewBox="0 0 24 24" style="color:${f.color}">${f.svg}</svg>`;
 }
+
+/* ================= تخصيص الأيقونات (صور حقيقية بدل الرسم الجاهز) ================= */
+const ICON_KINDS = [
+  { key:'folder', label:'مجلد' },
+  { key:'image', label:'صورة (قبل التحميل)' },
+  { key:'audio', label:'صوت' },
+  { key:'video', label:'فيديو' },
+  { key:'font', label:'خط' },
+  { key:'script-js', label:'سكريبت JS' },
+  { key:'script-cs', label:'سكريبت C#' },
+  { key:'script', label:'سكريبت عام' },
+  { key:'scene', label:'مشهد' },
+  { key:'mesh', label:'مجسم 3D' },
+  { key:'material', label:'مادة' },
+  { key:'config-json', label:'إعدادات JSON' },
+  { key:'config-xml', label:'إعدادات XML' },
+  { key:'data', label:'بيانات' },
+  { key:'archive', label:'أرشيف مضغوط' },
+  { key:'text', label:'نص' },
+  { key:'unknown', label:'غير معروف' },
+];
+let iconSettings = {}; // kind -> { data: base64, mime }
+const ICON_SETTINGS_PATH = 'MyEngine/icon-settings.json';
+const ICON_SETTINGS_DIR = 'DOCUMENTS';
+
+async function loadIconSettings(){
+  try{
+    if(isNative){
+      const r = await FS.readFile({ path: ICON_SETTINGS_PATH, directory: baseDir || ICON_SETTINGS_DIR, encoding:'utf8' });
+      iconSettings = JSON.parse(r.data);
+    }else{
+      const r = await window.storage.get('icon-settings', false);
+      iconSettings = r ? JSON.parse(r.value) : {};
+    }
+  }catch(e){ iconSettings = {}; }
+}
+async function saveIconSettings(){
+  try{
+    if(isNative){
+      await FS.writeFile({ path: ICON_SETTINGS_PATH, directory: baseDir || ICON_SETTINGS_DIR, data: JSON.stringify(iconSettings), encoding:'utf8' });
+    }else{
+      await window.storage.set('icon-settings', JSON.stringify(iconSettings), false);
+    }
+  }catch(e){ console.error(e); showToast('تعذّر حفظ إعدادات الأيقونات'); }
+}
+
+function renderIconSettingsList(){
+  const list = document.getElementById('edIconsList');
+  list.innerHTML = ICON_KINDS.map(k => {
+    const custom = iconSettings[k.key];
+    const preview = custom
+      ? `<img src="data:${custom.mime};base64,${custom.data}">`
+      : iconSvgFor(k.key);
+    return `
+      <div class="ed-icon-row">
+        <div class="ed-icon-row-preview">${preview}</div>
+        <div class="ed-icon-row-label">${k.label}</div>
+        <div class="ed-icon-row-actions">
+          <button data-pick="${k.key}">تغيير</button>
+          ${custom ? `<button data-reset="${k.key}">استعادة</button>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+  list.querySelectorAll('[data-pick]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('edIconPickInput').dataset.forKind = btn.dataset.pick;
+      document.getElementById('edIconPickInput').click();
+    });
+  });
+  list.querySelectorAll('[data-reset]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      delete iconSettings[btn.dataset.reset];
+      await saveIconSettings();
+      renderIconSettingsList();
+      if(currentProject) renderGrid();
+    });
+  });
+}
+
+function openIconSettings(){
+  renderIconSettingsList();
+  document.getElementById('edIconsOverlay').classList.add('open');
+}
+function closeIconSettings(){ document.getElementById('edIconsOverlay').classList.remove('open'); }
 /* --- عمليات نظام الملفات: نسخة حقيقية (Capacitor Filesystem) --- */
 const nativeFS = {
   _rel(pathArr, name){ return name ? [...pathArr, name].join('/') : pathArr.join('/'); },
@@ -2157,6 +2297,26 @@ edImportInput.addEventListener('change', async () => {
   if(isText) reader.readAsText(file); else reader.readAsDataURL(file);
 });
 
+document.getElementById('edIconSettingsBtn').addEventListener('click', openIconSettings);
+document.getElementById('edIconsClose').addEventListener('click', closeIconSettings);
+document.getElementById('edIconsOverlay').addEventListener('click', (e) => { if(e.target.id==='edIconsOverlay') closeIconSettings(); });
+document.getElementById('edIconPickInput').addEventListener('change', async function(){
+  const file = this.files[0];
+  const kind = this.dataset.forKind;
+  this.value = '';
+  if(!file || !kind) return;
+  const reader = new FileReader();
+  reader.onload = async () => {
+    const base64 = reader.result.split(',')[1];
+    iconSettings[kind] = { data: base64, mime: file.type || 'image/png' };
+    await saveIconSettings();
+    renderIconSettingsList();
+    if(currentProject) renderGrid();
+    showToast('تم تحديث الأيقونة');
+  };
+  reader.readAsDataURL(file);
+});
+
 document.getElementById('edBack').addEventListener('click', closeEditor);
 
 function closeEditor(){
@@ -2201,51 +2361,4 @@ async function openEditor(project){
 
 /* --- تحريك حدود اللوحات --- */
 function setupResizers(){
-  const root = document.documentElement;
-  function dragResizer(el, onMove){
-    let dragging = false;
-    const start = (e) => {
-      dragging = true;
-      el.classList.add('dragging');
-      e.preventDefault();
-    };
-    const move = (e) => {
-      if(!dragging) return;
-      const point = e.touches ? e.touches[0] : e;
-      onMove(point);
-    };
-    const end = () => { dragging = false; el.classList.remove('dragging'); };
-    el.addEventListener('mousedown', start);
-    el.addEventListener('touchstart', start, { passive:false });
-    window.addEventListener('mousemove', move);
-    window.addEventListener('touchmove', move, { passive:false });
-    window.addEventListener('mouseup', end);
-    window.addEventListener('touchend', end);
-  }
-
-  dragResizer(document.getElementById('rzHierScene'), (p) => {
-    const rect = edGrid.getBoundingClientRect();
-    const w = Math.max(120, Math.min(rect.width * 0.5, p.clientX - rect.left));
-    root.style.setProperty('--ed-col1', w + 'px');
-  });
-  dragResizer(document.getElementById('rzSceneInsp'), (p) => {
-    const rect = edGrid.getBoundingClientRect();
-    const w = Math.max(140, Math.min(rect.width * 0.5, rect.right - p.clientX));
-    root.style.setProperty('--ed-col5', w + 'px');
-  });
-  dragResizer(document.getElementById('rzTopBottom'), (p) => {
-    const rect = edGrid.getBoundingClientRect();
-    const h = Math.max(90, Math.min(rect.height * 0.7, rect.bottom - p.clientY));
-    root.style.setProperty('--ed-row3', h + 'px');
-  });
-}
-
-(async function start(){
-  await initStorage();
-  await refresh();
-  setupResizers();
-})();
-</script>
-
-</body>
-</html>
+  const root = document.documentElemen
